@@ -15,11 +15,11 @@
 的整体或部分的分享不会受到限制。
 
 这是第一版的计划
-AiCodo					//基类、接口、帮助函数
-AiCodo.Data				//数据库操作及相关基础
-AiCodo.DBProviders		//具体某个数据库（版本）接口封装，包括表结构获取及其它公用操作相关，将来可能会每个数据库对应一个库，比如AiCodo.DBProviders.MySql
-AiCodo.Codes			//代码生成及模板引擎
-AiCodo.Web				//开发平台入口
-AiCodo.Tests            //测试WebApi的“测试项目”，目前只写了登录及增删改查
+* AiCodo					//基类、接口、帮助函数
+* AiCodo.Data				//数据库操作及相关基础
+* AiCodo.DBProviders		//具体某个数据库（版本）接口封装，包括表结构获取及其它公用操作相关，将来可能会每个数据库对应一个库，比如AiCodo.DBProviders.MySql
+* AiCodo.Codes			//代码生成及模板引擎
+* AiCodo.Web				//开发平台入口
+* AiCodo.Tests            //测试WebApi的“测试项目”，目前只写了登录及增删改查
 
 这是第一步，还会更多、更好
