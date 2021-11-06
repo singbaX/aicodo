@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<PackageId>AiCodo.Codes</PackageId>
+		<Version>1.0.1</Version>
+		<Authors>singbaX</Authors>
+		<Company>aicodo.com</Company>
+	</PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>SingbaX</Authors>
+		<Company>aicodo.com</Company>
+		<Description>this is a basic lib for "AiCodo"</Description>
+		<Deterministic>false</Deterministic>
+		<AssemblyVersion>1.0.1</AssemblyVersion>
+		<FileVersion>1.0.*</FileVersion>
+		<PackageLicenseFile>license.txt</PackageLicenseFile>
+		<PackageTags>AiCodo</PackageTags>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AiCodo" Version="1.0.1" />
+    <PackageReference Include="AiCodo.Data" Version="1.0.1" />
+    <PackageReference Include="ClosedXML" Version="0.95.4" />
+    <PackageReference Include="RazorEngine.NetCore" Version="3.1.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="license.txt" Pack="true" PackagePath="" />
+	</ItemGroup>
+  <ItemGroup>
+    <None Update="Configs\CodeSetting.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Configs\templates\clientservice.razor">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Configs\templates\entity.razor">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

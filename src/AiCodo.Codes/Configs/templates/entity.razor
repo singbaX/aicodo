@@ -1,0 +1,48 @@
+﻿@using AiCodo;
+@using System.Linq;
+@{
+    var sql = Model.Sql;
+    var table = Model.Context;
+    var setting = Model.Setting;
+    var baseColumns = new string[] { "ID", "CreateUser", "CreateTime", "UpdateUser", "UpdateTime", "IsValid", "DeviceID" };
+    var columns = table.Columns.Where(c => baseColumns.FirstOrDefault(f => f == c.Name) == null);
+}/*@(table.Name)*/
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CellCounter
+{
+    public partial class @table.CodeName : RowEntity
+    {
+
+        public @(table.CodeName)()
+        {
+@foreach(var col in columns){
+<text>            @col.Name= @sql.GetDefaultValue(col.DataType);
+</text>
+}
+        }
+
+        #region columns
+@foreach(var col in columns){
+<text>
+        #region property @col.Name 
+        /* @col.Comment */
+        public @sql.GetCodeType(col.DataType) @col.Name
+        {
+            get
+            {
+                return GetFieldValue<@sql.GetCodeType(col.DataType)>("@col.Name", @sql.GetDefaultValue(col.DataType));
+            }
+            set
+            {
+                SetFieldValue("@col.Name", value);
+            }
+        }
+        #endregion
+</text>
+}
+        #endregion
+    }
+}

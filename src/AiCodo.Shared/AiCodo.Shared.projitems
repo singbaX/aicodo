@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>7137d73f-900a-4ef0-aab7-64b7fc6e4d5e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>AiCodo.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Settings\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Logger\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\CollectionBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\DBEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\DynamicEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\DynamicExpando.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\Entity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\IEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\RowEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\ServiceResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\StaticExpando.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ApplicationConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FormatString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\CollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DateHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\EntityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FileHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FileLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\JsonHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ObjectConverterExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SteamHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ThreadHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TimingThread.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\XExtensions.Server.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\XExtensions.Share.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logger\ILog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logger\Log4NetLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logger\Logger.cs" />
+  </ItemGroup>
+</Project>

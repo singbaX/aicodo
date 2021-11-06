@@ -1,0 +1,62 @@
+﻿@page
+@model AiCodo.Web.Pages.CreateConnectionModel
+@{
+}
+<form method="post">
+    <div asp-validation-summary="All"></div>
+    <div class="mb-3">
+        <label asp-for="Connection.Name" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Name" class="form-control" />
+            <span asp-validation-for="Connection.Name"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.ProviderName" class="form-label"></label>
+        <div>
+            <select asp-for="Connection.ProviderName" class="form-control">
+                @foreach(var p in Model.Providers)
+                {
+                    <option value="@p">@p</option>
+                }
+            </select>
+            <span asp-validation-for="Connection.ProviderName"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.Server" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Server" class="form-control" />
+            <span asp-validation-for="Connection.Server"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.Port" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Port" class="form-control" />
+            <span asp-validation-for="Connection.Port"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.Uid" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Uid" class="form-control" />
+            <span asp-validation-for="Connection.Uid"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.Password" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Password" class="form-control" />
+            <span asp-validation-for="Connection.Password"></span>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Connection.Database" class="form-label"></label>
+        <div>
+            <input asp-for="Connection.Database" class="form-control" />
+            <span asp-validation-for="Connection.Database"></span>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<PackageId>AiCodo.Data</PackageId>
+		<Version>1.0.1</Version>
+		<Authors>singbaX</Authors>
+		<Company>aicodo.com</Company>
+	</PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>SingbaX</Authors>
+		<Company>aicodo.com</Company>
+		<Description>this is a db lib for "AiCodo"</Description>
+		<Deterministic>false</Deterministic>
+		<AssemblyVersion>1.0.1</AssemblyVersion>
+		<FileVersion>1.0.*</FileVersion>
+		<PackageLicenseFile>license.txt</PackageLicenseFile>
+		<PackageTags>AiCodo</PackageTags>
+	</PropertyGroup>
+
+  <ItemGroup> 
+    <PackageReference Include="AiCodo" Version="1.0.1" /> 
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="license.txt" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+</Project>

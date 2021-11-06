@@ -1,0 +1,13 @@
+[2021-11-05 20:15:33]Update执行错误:Fatal error encountered during command execution.
+UPDATE `sys_user` SET 
+`UserName`=@UserName
+,`Email`=@Email
+,`Password`=@Password
+,`CreateUser`=@CreateUser
+,`CreateTime`=@CreateTime
+,`UpdateUser`=@UpdateUser
+,`UpdateTime`=@UpdateTime
+,`IsValid`=@IsValid
+ WHERE `ID`=@ID
+
+@UserName=test1,@Email=test1user@xx.com,@Password=123456,@CreateUser=1,@CreateTime=2021/11/5 20:15:33,@UpdateUser=1,@UpdateTime=2021/11/5 20:15:33,@IsValid=1

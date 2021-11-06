@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSetting Namespace="AiCodo">
+	<GlobalParameters>
+		<Paramter Name="" CodeType="" DefaultValue="" />
+	</GlobalParameters>
+	<TypeMappings>
+		<Item ProviderName="" DataType="" CodeType="" DefaultValue=""/>
+	</TypeMappings>
+	<Templates>
+		<Item Name="Entity" DisplayName="实体类" FileName="entity.razor" CodeFileName="" ModelType="Table"/>
+		<Item Name="ClientService" DisplayName="客户端服务" FileName="service.razor" CodeFileName="" ModelType="Table"/>
+	</Templates>
+</CodeSetting>

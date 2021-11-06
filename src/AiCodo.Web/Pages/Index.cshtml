@@ -1,0 +1,77 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page"; 
+}
+
+@if (Model.SqlData.Connections.Count == 0)
+{
+    <div class="text-center">
+        <h1 class="display-4">第一次使用？</h1>
+        <p>Learn about <a href="/CreateConnection">新建连接</a>.</p>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-2">
+            @foreach (var conn in Model.SqlData.Connections)
+            {
+                <h1>@conn.Name</h1>
+                <nav class="nav flex-column">
+                    @foreach (var table in conn.Tables)
+                    {
+                        @if (table == Model.Table)
+                        {
+                            <a class="nav-link active" href="?table=@(table.Name)&conn=@(conn.Name)">@table.Name</a>
+                        }
+                        else
+                        {
+                            <a class="nav-link" href="?table=@(table.Name)&conn=@(conn.Name)">@table.Name</a>
+                        }
+                    }
+                </nav>
+            }
+        </div>
+        <div class="col-10">
+            @if (Model.Table != null)
+            {
+                <h1>@Model.Table.Name</h1>
+                @if (Model.TemplateItems != null && Model.TemplateItems.Count > 0)
+                {
+                    <div class="row">
+                        @foreach (var t in Model.TemplateItems)
+                        {
+                            var tableName=Model.Table.Name;
+                            <a class="nav-link" href="?handler=Code&table=@(tableName)&conn=@(Model.ConnItem.Name)&name=@(t.Name)">[@(t.DisplayName)]</a>        
+                        }
+                    </div>
+                }
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Field Name</th>
+                            <th scope="col">Display Name</th>
+                            <th scope="col">Data Type</th>
+                            <th scope="col">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var col in Model.Table.Columns)
+                        {
+                            var cls = col.IsKey ? "table-primary" : "";
+                            <tr class="@cls">
+                                <th scope="row">@col.ColumnOrdinal</th>
+                                <td>@col.Name</td>
+                                <td>@col.DisplayName</td>
+                                <td>@col.ColumnType</td>
+                                <td>@col.Comment</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
