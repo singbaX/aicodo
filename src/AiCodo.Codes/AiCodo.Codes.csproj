@@ -17,6 +17,8 @@
 		<FileVersion>1.0.*</FileVersion>
 		<PackageLicenseFile>license.txt</PackageLicenseFile>
 		<PackageTags>AiCodo</PackageTags>
+		<PackageProjectUrl>https://github.com/singbaX/aicodo</PackageProjectUrl>
+		<Copyright>Copyright (c) AiCodo.com. All rights reserved.</Copyright>
 	</PropertyGroup>
 
   <ItemGroup>

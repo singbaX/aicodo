@@ -9,7 +9,6 @@
     <Import_RootNamespace>AiCodo.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Settings\" />
     <Folder Include="$(MSBuildThisFileDirectory)Logger\" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SqlData AutoGenerateItems="true">
+	<Connections>
+		<Connection Name="aicodo" ProviderName="mysql" ConnectionString="Server=localhost;Port=12306;Database=demo1;Uid=root;Pwd=sa123456;CharSet=utf8;SslMode=none;"/>
+	</Connections>
+</SqlData>
