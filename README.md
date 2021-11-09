@@ -217,5 +217,20 @@ COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 ;
 ```
-## 
+## add config file "sql.xml"
+* add file "App_Data\\configs\\sql.xml"
+* change parameter value for your own: Server=localhost;Port=12306;Database=demo1;Uid=root;Pwd=sa123456;CharSet=utf8;SslMode=none;
+```
+<?xml version="1.0" encoding="utf-8" ?>
+<SqlData AutoGenerateItems="true">
+	<Connections>
+		<Connection Name="aicodo" ProviderName="mysql" ConnectionString="Server=localhost;Port=12306;Database=demo1;Uid=root;Pwd=sa123456;CharSet=utf8;SslMode=none;"/>
+	</Connections>
+</SqlData>
+```
 
+## run 
+![image](https://github.com/singbaX/aicodo/blob/main/doc/samples/images/pageindex.png)
+
+add "service/sys_user/selectall" in url
+![image](https://github.com/singbaX/aicodo/blob/main/doc/samples/images/httpget.png)
