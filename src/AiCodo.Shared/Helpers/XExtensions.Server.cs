@@ -13,6 +13,8 @@ namespace AiCodo
     using System.Xml;
     using System.IO;
     using System.Xml.Serialization;
+    using System.Text;
+
     public static partial class BaseHelper
     {
         public static void SaveXDoc(this object xobj, string filename)
@@ -26,10 +28,16 @@ namespace AiCodo
                     System.IO.Directory.CreateDirectory(path);
                 }
             }
-            XmlSerializer xs = new XmlSerializer(xobj.GetType());
-            Stream stream = System.IO.File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.None);
 
-            xs.Serialize(stream, xobj);
+            XmlSerializer xs = new XmlSerializer(xobj.GetType());
+            Stream stream = System.IO.File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.None); 
+            var streamWriter = XmlWriter.Create(stream, new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8,
+                Indent = true,
+                
+            });
+            xs.Serialize(streamWriter, xobj);
             stream.Close();
         }
 

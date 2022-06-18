@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AiCodo.Cmds": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\xxj\\singba\\code\\AiCodo.Tools\\AiCodo.Cmds\\Configs\""
+    }
+  }
+}

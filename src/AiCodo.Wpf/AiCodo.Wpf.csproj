@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>SingbaX</Authors>
+		<Company>aicodo.com</Company>
+		<Description>this is a wpf lib for "AiCodo"</Description>
+		<Deterministic>false</Deterministic>
+		<AssemblyVersion>1.0.1</AssemblyVersion>
+		<FileVersion>1.0.*</FileVersion>
+		<PackageLicenseFile>license.txt</PackageLicenseFile>
+		<PackageTags>AiCodo</PackageTags>
+		<PackageProjectUrl>https://github.com/singbaX/aicodo</PackageProjectUrl>
+		<Copyright>Copyright (c) AiCodo.com. All rights reserved.</Copyright>
+  </PropertyGroup>
+	
+	<PropertyGroup>
+		<PackageId>AiCodo.Wpf</PackageId>
+		<Version>1.0.7</Version>
+		<Authors>singbaX</Authors>
+		<Company>aicodo.com</Company>
+	</PropertyGroup> 
+
+	<ItemGroup>
+    <PackageReference Include="AiCodo" Version="1.0.4" />
+    <PackageReference Include="Autofac" Version="6.3.0" />
+    <PackageReference Include="DynamicExpresso.Core" Version="2.12.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="license.txt" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Update="Themes\AiPage.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
+	  <Page Update="Themes\Generic.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
+	  <Page Update="Themes\Window.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\" />
+	</ItemGroup>
+
+</Project>

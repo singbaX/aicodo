@@ -42,11 +42,12 @@ namespace AiCodo.Codes
         static CodeService()
         {
             TemplateRoot = "templates".FixedAppConfigPath();
+            CodeRoot = "codes".FixedAppBasePath();
         }
 
-        public static string TemplateRoot { get; private set; }
+        public static string TemplateRoot { get; set; }
 
-        public static string CodeRoot { get; private set; }
+        public static string CodeRoot { get; set; }
 
         static SqlCode SqlCode { get; set; } = new SqlCode();
 
@@ -429,15 +430,28 @@ namespace AiCodo.Codes
 
         static string GetTemplateFileName(string fileName)
         {
-            if (fileName.Contains(":"))
+            if (fileName.IsFileExists())
             {
                 return fileName;
+            }
+            var item = CodeSetting.Current.Templates.FirstOrDefault(t => t.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
+            if (item != null)
+            {
+                if (item.FileName.IsFileExists())
+                {
+                    return item.FileName;
+                }
+                var templateFile = Path.Combine(TemplateRoot, item.FileName);
+                if (templateFile.IsFileExists())
+                {
+                    return templateFile;
+                }
             }
             return Path.Combine(TemplateRoot, fileName);
         }
         static string GetCodeFileName(string fileName)
         {
-            if (fileName.Contains(":"))
+            if (fileName.IsFileExists())
             {
                 return fileName;
             }

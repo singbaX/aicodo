@@ -99,7 +99,7 @@ namespace AiCodo.Data
         }
     }
 
-    public class LogicFilter : SqlFilter
+    public class LogicFilter : SqlFilter,ILogicFilter
     {
         public LogicJoinType Type { get; set; } = LogicJoinType.And;
 

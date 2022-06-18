@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Avalonia", ""))</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>Avalonia</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>Avalonia</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AiCodo.Wpf\ContentLoader.cs" Link="ContentLoader.cs" />
+    <Compile Include="..\AiCodo.Wpf\ControlService.cs" Link="ControlService.cs" />
+    <Compile Include="..\AiCodo.Wpf\DataErrorValidate.cs" Link="DataErrorValidate.cs" />
+    <Compile Include="..\AiCodo.Wpf\KeyValue.cs" Link="KeyValue.cs" />
+    <Compile Include="..\AiCodo.Wpf\RelayCommand.cs" Link="RelayCommand.cs" />
+    <Compile Include="..\AiCodo.Wpf\VisualTreeHelper.cs" Link="VisualTreeHelper.cs" />
+    <Compile Include="..\AiCodo.Wpf\WpfHelper.cs" Link="WpfHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AiCodo" Version="1.0.4" />
+    <PackageReference Include="Autofac" Version="6.4.0" />
+    <PackageReference Include="Avalonia" Version="0.10.14" />
+    <PackageReference Include="DynamicExpresso.Core" Version="2.12.0" />
+  </ItemGroup>
+
+</Project>

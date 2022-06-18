@@ -24,7 +24,7 @@ namespace AiCodo.Codes
 
         private static object _LoadLock = new object();
 
-        private Dictionary<string, List<TypeMapping>> _TypeMappingItems = new Dictionary<string, List<TypeMapping>>();
+        private Dictionary<string, Dictionary<string,TypeMapping>> _TypeMappingItems = new Dictionary<string, Dictionary<string, TypeMapping>>();
         private Dictionary<string, ParameterType> _GlobalParametersItems = new Dictionary<string, ParameterType>();
 
         #region 属性 Current
@@ -51,6 +51,8 @@ namespace AiCodo.Codes
         {
             var fileName = _ConfigFileName;
             var setting = fileName.LoadXDoc<CodeSetting>();
+            setting.ResetTypeMappingItems();
+            setting.Log($"加载代码配置文件[{fileName}]");
             _Current = setting;
         }
         #endregion
@@ -129,6 +131,7 @@ namespace AiCodo.Codes
             {
                 _TypeMappings = value;
                 RaisePropertyChanged("TypeMappings");
+                ResetTypeMappingItems();
             }
         }
         #endregion
@@ -207,24 +210,23 @@ namespace AiCodo.Codes
         }
         private void ResetTypeMappingItems()
         {
-            TypeMappings.GroupBy(t => t.CodeType.ToLower())
+            TypeMappings.GroupBy(t => t.ProviderName.ToLower())
                 .ForEach(g =>
                 {
-                    _TypeMappingItems[g.Key] = g.ToList();
+                    _TypeMappingItems[g.Key] = g.ToDictionary(d=>d.DataType.ToLower());
                 });
         }
 
         private TypeMapping GetDataTypeMappingItem(string dataType, string providerName)
         {
             TypeMapping item = null;
-            if (_TypeMappingItems.TryGetValue(dataType.ToLower(), out List<TypeMapping> list))
+            if (_TypeMappingItems.TryGetValue(providerName.ToLower() ,out var list))
             {
                 if (providerName.IsNotEmpty())
                 {
-                    item = list.FirstOrDefault(f => f.ProviderName.Equals(providerName));
-                    if (item == null)
+                    if(list.TryGetValue(dataType.ToLower(),out item))
                     {
-                        item = list.FirstOrDefault();
+                        return item;
                     }
                 }
             }

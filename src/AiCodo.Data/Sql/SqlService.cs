@@ -43,6 +43,37 @@ namespace AiCodo.Data
             }
         }
 
+        public static IEnumerable<T> ExecuteSqlQuery<T>(string sqlName,
+            ISqlFilter filter, Sort sort,
+            int pageIndex, int pageSize)
+            where T : IEntity, new()
+        {
+            var sqlContext = new SqlContext(sqlName);
+            if (filter != null)
+            {
+                sqlContext.SetFilter(filter);
+            }
+            if (sort != null)
+            {
+                sqlContext.SetSorts(sort);
+            }
+            if (pageSize > 0)
+            {
+                sqlContext.SetPage(pageIndex, pageSize);
+            }
+            return sqlContext.ExecuteQuery<T>();
+        }
+
+        public static int ExecuteSqlCount(string sqlName, ISqlFilter filter)
+        {
+            var sqlContext = new SqlContext(sqlName);
+            if (filter != null)
+            {
+                sqlContext.SetFilter(filter);
+            }
+            return sqlContext.GetTotalCount();
+        }
+
         private static SqlItem GetSqlItem(string sqlName)
         {
             var config = Config;

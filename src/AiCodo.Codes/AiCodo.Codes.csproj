@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<PackageId>AiCodo.Codes</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.7</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
 	</PropertyGroup>
@@ -42,5 +42,8 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="Copy $(OutDir)$(TargetName)$(TargetExt) ..\bin\" />
+  </Target>
 
 </Project>

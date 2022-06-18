@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<PackageId>AiCodo</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.8</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
 	</PropertyGroup>
@@ -29,6 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DynamicExpresso.Core" Version="2.13.0" />
     <PackageReference Include="log4net" Version="2.0.12" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
@@ -40,5 +41,9 @@
   </ItemGroup>
 
   <Import Project="..\AiCodo.Shared\AiCodo.Shared.projitems" Label="Shared" />
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="Copy $(OutDir)$(TargetName)$(TargetExt) ..\bin\" />
+  </Target>
 
 </Project>

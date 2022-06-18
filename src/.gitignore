@@ -1,0 +1,22 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/AiCodo/bin/Debug
+/AiCodo/obj
+/.vs/AiCodo/v16
+/AiCodo.WebAPI
+/AiCodo.WebAPI.Tests
+/AiCodo.Codes/bin/Debug
+/AiCodo.Codes/obj
+/AiCodo.Data/bin/Debug
+/AiCodo.Data/obj
+/.vs/AiCodo
+/AiCodo.Data.MySql/bin/Debug
+/AiCodo.Data.MySql/obj
+/AiCodo.DBProviders/bin/Debug/netstandard2.0
+/AiCodo.DBProviders/obj
+/AiCodo.Tests/bin/Debug/net5.0
+/AiCodo.Tests/obj
+/AiCodo.Web/bin/Debug/net5.0
+/AiCodo.Web/obj

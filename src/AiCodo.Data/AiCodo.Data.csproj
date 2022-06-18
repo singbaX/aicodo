@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<PackageId>AiCodo.Data</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.7</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
 	</PropertyGroup>
@@ -19,6 +19,7 @@
 		<PackageTags>AiCodo</PackageTags>
 		<PackageProjectUrl>https://github.com/singbaX/aicodo</PackageProjectUrl>
 		<Copyright>Copyright (c) AiCodo.com. All rights reserved.</Copyright>
+		<PackageReleaseNotes>修改Filter没有处理多个Filter组合问题（LogicFilter）</PackageReleaseNotes>
 	</PropertyGroup>
 
   <ItemGroup> 
@@ -30,5 +31,9 @@
 	<ItemGroup>
 		<None Include="license.txt" Pack="true" PackagePath="" />
 	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="Copy $(OutDir)$(TargetName)$(TargetExt) ..\bin\" />
+	</Target>
 
 </Project>

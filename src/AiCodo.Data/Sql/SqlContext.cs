@@ -209,7 +209,7 @@ namespace AiCodo.Data
             }
 
             DynamicEntity filterParameters = new DynamicEntity();
-            sql += AppendFilter(sql, filterParameters, _Filter);
+            sql = AppendFilter(sql, filterParameters, _Filter);
             if (nameValues != null)
             {
                 for (int i = 0; i < nameValues.Length - 1; i += 2)

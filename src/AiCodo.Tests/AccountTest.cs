@@ -3,6 +3,8 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AiCodo.Tests
 {
@@ -49,12 +51,46 @@ namespace AiCodo.Tests
             testUser.SetValue("Email", "test1user@xx.com");
 
             //update user
-            var count =WebService.Request<int>("service/sys_user/Update", testUser);
+            var count = WebService.Request<int>("service/sys_user/Update", testUser);
             Assert.IsTrue(count > 0);
 
             //remove user
             count = WebService.Request<int>("service/sys_user/Delete", new DynamicEntity("ID", newID));
             Assert.IsTrue(count == 1);
+        }
+
+        [Test]
+        public void TestAsync()
+        {
+            var waitDone = false;
+            var done = false;
+            AsyncService.StartWaitTask(2)
+                .ContinueWith(t =>
+                {
+                    waitDone = true;
+                    AsyncService.StartTask(() =>
+                    {
+                        done = true;
+                    });
+                }).Wait();
+            Assert.IsTrue(waitDone);
+            Assert.IsFalse(done);
+        }
+    }
+
+    static class AsyncService
+    {
+        public static Task StartTask(Action action)
+        {
+            return Task.Run(() =>action);
+        }
+
+        public static Task StartWaitTask(int second)
+        {
+            return Task.Run(() =>
+            {
+                Thread.Sleep(second);
+            });
         }
     }
 }

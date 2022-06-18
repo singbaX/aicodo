@@ -16,9 +16,24 @@ using System.Text.RegularExpressions;
 
 namespace AiCodo.Data
 {
+    public interface IMappingService
+    {
+        string GetPropertyName(string columnName);
+    }
+
+    class DefaultMapping : IMappingService
+    {
+        public string GetPropertyName(string columnName)
+        {
+            return columnName;
+        }
+    }
+
     public static class SqlHelper
     {
         private static Dictionary<DbType, object> _DefaultValues = new Dictionary<DbType, object>();
+
+        static IMappingService _MappingService = new DefaultMapping();
 
         public static string MySql_GetTableSchema { get; set; } =
 @"select C.TABLE_NAME,
@@ -96,6 +111,11 @@ namespace AiCodo.Data
                 throw new Exception("数据库连接不存在");
             }
             return connection.CreateAdapter();
+        }
+
+        public static void UseMappingService(IMappingService service)
+        {
+            _MappingService = service;
         }
 
         public static void CloseConnection(this DbConnection conn)
@@ -420,7 +440,8 @@ namespace AiCodo.Data
                         continue;
                     }
                     var name = reader.GetName(i);
-                    newItem.SetValue(name, vv);
+                    var pname = _MappingService.GetPropertyName(name);
+                    newItem.SetValue(pname, vv);
                 }
                 yield return newItem;
             }
