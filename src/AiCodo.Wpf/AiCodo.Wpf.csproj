@@ -23,12 +23,15 @@
 		<Version>1.0.7</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
-	</PropertyGroup> 
+	</PropertyGroup>
+	
+	<ItemGroup>
+	  <Compile Remove="Helpers\ExpressionHelper.cs" />
+	  <Compile Remove="KeyValue.cs" />
+	</ItemGroup> 
 
 	<ItemGroup>
-    <PackageReference Include="AiCodo" Version="1.0.4" />
-    <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="DynamicExpresso.Core" Version="2.12.0" />
+    <PackageReference Include="Autofac" Version="6.4.0" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -51,7 +54,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Helpers\" />
 	  <Folder Include="Services\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\AiCodo\AiCodo.csproj" />
 	</ItemGroup>
 
 </Project>

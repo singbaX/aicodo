@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -20,7 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AiCodo.Flow\AiCodo.Flow.csproj" />
     <ProjectReference Include="..\AiCodo\AiCodo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configs\" />
   </ItemGroup>
 
 </Project>

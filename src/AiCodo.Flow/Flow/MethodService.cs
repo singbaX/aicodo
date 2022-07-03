@@ -8,7 +8,7 @@ namespace AiCodo.Flow.Configs
 {
     public interface IMethodService
     {
-        FunctionResult Run(string name, Dictionary<string, object> args);
+        IFunctionResult Run(string name, Dictionary<string, object> args);
 
         IEnumerable<NameItem> GetItems();
 
@@ -45,7 +45,7 @@ namespace AiCodo.Flow.Configs
             return null;
         }
 
-        public static FunctionResult Run(string name, Dictionary<string, object> args)
+        public static IFunctionResult Run(string name, Dictionary<string, object> args)
         {
             string funcName;
             IMethodService serivce;

@@ -1,6 +1,6 @@
-   AiCodo
+ï»¿   AiCodo
 
-    AiCodoÏµÁÐÀà¿â×ñÑ­MITÐ­Òé¿ªÔ´£¬ÔøÓÃÃûAF¡¢AF.NetµÈ£¬Èç¹ûÓÐ¿´µ½Ê¹ÓÃÓ¦¸ÃÊÇÓësingba¹²ÊÂ¹ýµÄÅóÓÑ
+    AiCodoç³»åˆ—ç±»åº“éµå¾ªMITåè®®å¼€æºï¼Œæ›¾ç”¨åAFã€AF.Netç­‰ï¼Œå¦‚æžœæœ‰çœ‹åˆ°ä½¿ç”¨åº”è¯¥æ˜¯ä¸Žsingbaå…±äº‹è¿‡çš„æœ‹å‹
 
     MIT License
 

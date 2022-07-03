@@ -20,11 +20,13 @@ namespace AiCodo
     using System.Threading;
     using System.Threading.Tasks;
     using System.Linq;
+    using System.Diagnostics;
 
     public class ParallelSortQueue<T> : ParallelQueueBase<T>
     {
         SortedSet<T> _Queue = null;
         Func<T, bool> _ItemReady = null;
+        Object _QueueLock = new object();
 
         public override int ItemCount { get { return _Queue.Count; } }
 
@@ -36,7 +38,7 @@ namespace AiCodo
 
         public override void AddItem(T item)
         {
-            lock (_Queue)
+            lock (_QueueLock)
             {
                 _Queue.Add(item);
             }
@@ -46,7 +48,7 @@ namespace AiCodo
         {
             if (_Queue.Count > 0)
             {
-                lock (_Queue)
+                lock (_QueueLock)
                 {
                     if (_ItemReady == null)
                     {
@@ -58,14 +60,15 @@ namespace AiCodo
                         return item;
                     }
                     var ready = _ItemReady;
-                    foreach (var item in _Queue)
+                    foreach (var item in _Queue.ToList())
                     {
                         if (ready(item))
                         {
                             var ok = _Queue.Remove(item);
                             if (ok == false)
                             {
-                                throw new Exception("删除失败");
+                                $"删除实验队列元素失败{item}".WriteErrorLog();
+                                continue;
                             }
                             return item;
                         }

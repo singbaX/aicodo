@@ -17,10 +17,68 @@ namespace AiCodo.Flow.Configs
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.Loader;
+    using System.Threading;
 
-    public class FuncService : IMethodService
+    public class MethodStartEventArgs : EventArgs
     {
+        public int ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
+        public DateTime CreateTime { get; } = DateTime.Now;
+
+        public string Name { get; }
+
+        public Dictionary<string, object> Parameters { get; }
+
+        public MethodStartEventArgs(string name, Dictionary<string, object> parameters)
+        {
+            Name = name;
+            Parameters = parameters;
+        }
+    }
+
+    public class MethodEndEventArgs : EventArgs
+    {
+        public int ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
+        public DateTime CreateTime { get; } = DateTime.Now;
+        public string ErrorCode { get; private set; }
+
+        public string ErrorMessage { get; private set; }
+
+        public Dictionary<string, object> Parameters { get; private set; }
+
+        public MethodEndEventArgs()
+        {
+            ErrorCode = FunctionResult.OK;
+            ErrorMessage = "";
+        }
+
+        public MethodEndEventArgs(Dictionary<string, object> parameters) : this()
+        {
+            Parameters = parameters;
+        }
+
+        public MethodEndEventArgs(string errorCode, string errorMessage, Dictionary<string, object> parameters)
+        {
+            ErrorCode = errorCode;
+            ErrorMessage = errorMessage;
+            Parameters = parameters;
+        }
+
+        public MethodEndEventArgs SetParameter(string name, object value)
+        {
+            if (Parameters == null)
+            {
+                Parameters = new Dictionary<string, object>();
+            }
+            Parameters[name] = value;
+            return this;
+        }
+    }
+
+
+    public partial class FuncService : IMethodService
+    {
+        private Dictionary<string, IFunctionItem> _Items = new Dictionary<string, IFunctionItem>();
+
         #region 属性 Current
         private static FuncService _Current = new FuncService();
         public static FuncService Current
@@ -32,23 +90,134 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
+        public void RegisterItem(string name, IFunctionItem item)
+        {
+            _Items[name] = item;
+        }
+
+        public void RegisterMethod(string name, MethodInfo method)
+        {
+            FunctionItemConfig item = CreateFunctionItem(method);
+            _Items.Add(name, item);
+            FuncService.SetMethod(name, method);
+        }
+
+        private static FunctionItemConfig CreateFunctionItem(MethodInfo method)
+        {
+            var methodName = method.Name;
+            var item = new FunctionItemConfig
+            {
+                Name = methodName,
+                DisplayName = methodName,
+                //Location = new FunctionItemLocation
+                //{
+                //    AsmName = type.Assembly.GetName().Name,
+                //    FileName = "",
+                //    ClassName = type.FullName,
+                //    MethodName = methodName
+                //}
+            };
+            ResetItemParameters(item, method);
+            return item;
+        }
+
+        static void ResetItemParameters(FunctionItemConfig item, MethodInfo method)
+        {
+            var returnType = method.ReturnType;
+            var parameters = item.Parameters.ToList();
+            item.Parameters.Clear();
+            method.GetParameters()
+                .ForEach(mp =>
+                {
+                    var p = parameters.FirstOrDefault(f => f.Name.Equals(mp.Name, StringComparison.OrdinalIgnoreCase));
+                    if (p == null)
+                    {
+                        p = new ParameterItem
+                        {
+                            Name = mp.Name,
+                            TypeName = GetParameterTypeName(mp.ParameterType)
+                        };
+                    }
+                    else if (p.TypeName == "String")
+                    {
+                        p.TypeName = GetParameterTypeName(mp.ParameterType);
+                    }
+                    item.Parameters.Add(p);
+                });
+
+            var resultParameters = item.ResultParameters.ToList();
+            item.ResultParameters.Clear();
+        }
+
+        private static string GetParameterTypeName(Type type)
+        {
+            if (type.IsByRef)
+            {
+                var atype = type.Assembly.GetType(type.FullName.TrimEnd('&'));
+                if (atype != null)
+                {
+                    type = atype;
+                }
+                else
+                {
+                    throw new Exception($"类型错误[{type.FullName}]");
+                }
+            }
+
+            if (type == typeof(bool))
+            {
+                return "Bool";
+            }
+
+            if (type == typeof(int))
+            {
+                return "Int";
+            }
+
+            if (type == typeof(float) || type == typeof(Single))
+            {
+                return "Single";
+            }
+            if (type == typeof(double))
+            {
+                return "Double";
+            }
+
+            return "String";
+        }
+
+
         public IFunctionItem GetItem(string name)
         {
             return GetFunctionItem(name);
         }
 
-        private static IFunctionItem GetFunctionItem(string name)
+        private IFunctionItem GetFunctionItem(string name)
         {
+            if (_Items.TryGetValue(name, out var item))
+            {
+                return item;
+            }
             return FunctionConfig.Current.GetItem(name);
         }
 
         public IEnumerable<NameItem> GetItems()
         {
-            return FunctionConfig.Current.Items
-                .Select(f => new NameItem(f.Name, f.DisplayName));
+            if (_Items.Count > 0)
+            {
+                foreach (var item in _Items)
+                {
+                    yield return new NameItem(item.Key, item.Value.DisplayName);
+                }
+            }
+            foreach (var item in FunctionConfig.Current.Items
+                .Select(f => new NameItem(f.Name, f.DisplayName)))
+            {
+                yield return item;
+            }
         }
 
-        public FunctionResult Run(string name, Dictionary<string, object> args)
+        public IFunctionResult Run(string name, Dictionary<string, object> args)
         {
             var item = GetFunctionItem(name);
             if (item == null)
@@ -57,7 +226,7 @@ namespace AiCodo.Flow.Configs
             }
             if (item is FunctionItemConfig funcItem)
             {
-                return FunctionService.Run(funcItem, args);
+                return Run(funcItem, args);
             }
             else
             {
@@ -66,13 +235,11 @@ namespace AiCodo.Flow.Configs
         }
     }
 
-    internal static class FunctionService
+    public partial class FuncService
     {
-        static string[] _ImportDll = new string[] { "System.ComponentModel.Composition.dll" };
-
         static CollectibleAssemblyLoadContext _LoadContext = null;
 
-        static FunctionService()
+        static FuncService()
         {
             _LoadContext = new CollectibleAssemblyLoadContext();
         }
@@ -80,7 +247,7 @@ namespace AiCodo.Flow.Configs
         #region 方法的查找及调用
         static readonly Dictionary<string, MethodInfo> _Methods = new Dictionary<string, MethodInfo>();
 
-        public static object RunMethod(this string name, params object[] args)
+        public static object RunMethod(string name, params object[] args)
         {
             #region 动态获取方法并缓存
             if (!_Methods.TryGetValue(name, out MethodInfo method))
@@ -110,28 +277,137 @@ namespace AiCodo.Flow.Configs
             }
             catch (Exception ex)
             {
-                nameof(FunctionService).Log(ex.ToString(), Category.Exception);
+                nameof(FuncService).Log(ex.ToString(), Category.Exception);
                 throw new Exception($"执行算法方法[{name}]出错：{ex.Message}", ex);
             }
         }
 
-        public static FunctionResult Run(string itemName, Dictionary<string, object> args)
-        {
-            var item = FunctionConfig.Current.Items.FirstOrDefault(f => f.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
-            if (item != null && item is FunctionItemConfig itemconfig)
-            {
-                return Run(itemconfig, args);
-            }
-            return null;
-        }
+        //public static IFunctionResult Run(string itemName, Dictionary<string, object> args)
+        //{
+        //    var item = FunctionConfig.Current.Items.FirstOrDefault(f => f.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        //    if (item != null && item is FunctionItemConfig itemconfig)
+        //    {
+        //        return Run(itemconfig, args);
+        //    }
+        //    return null;
+        //}
 
-        public static FunctionResult Run(this FunctionItemConfig item, Dictionary<string, object> args)
+        static IFunctionResult Run(FunctionItemConfig item, Dictionary<string, object> args)
         {
             if (args == null)
             {
                 throw new ArgumentException($"执行方法缺少必须参数", nameof(args));
             }
 
+            MethodInfo method = GetMethod(item);
+
+            #region 设置方法参数
+            var pinfos = method.GetParameters();
+            var parameters = pinfos.Select(p =>
+            {
+                if (args.TryGetValue(p.Name, out object v))
+                {
+                    return v;
+                }
+                if (p.HasDefaultValue)
+                {
+                    return p.DefaultValue;
+                }
+                throw new ArgumentException($"执行方法缺少必须参数[{method.Name}-{p.Name}]", p.Name);
+            }).ToArray();
+            #endregion
+
+            OnMethodStart(item.Name, pinfos, parameters);
+            var value = RunItemMethod(item, method, parameters);
+            OnMethodEnd(item.Name, value);
+            return value;
+        }
+
+        static IFunctionResult RunItemMethod(FunctionItemConfig item, MethodInfo method, object[] parameters)
+        {
+            object value = null;
+            try
+            {
+                value = method.Invoke(null, parameters);
+            }
+            catch (Exception ex)
+            {
+                ex.WriteErrorLog();
+                return new FunctionResult
+                {
+                    ErrorCode = FunctionResult.MethodInnerError,
+                    ErrorMessage = ex.Message
+                };
+            }
+
+            if (value == null)
+            {
+                nameof(FuncService).Log($"执行方法无返回值：[{item.Name}]-[{item.DisplayName}]");
+                return null;
+            }
+
+            if (value is IFunctionResult result)
+            {
+                return result;
+            }
+            return ToFunctionResult(value);
+        }
+
+        private static void OnMethodStart(string name, ParameterInfo[] pinfos, object[] parameters)
+        {
+
+        }
+
+        private static void OnMethodEnd(string name, IFunctionResult value)
+        {
+
+        }
+        static IFunctionResult ToFunctionResult(object value)
+        {
+            if (value is IFunctionResult r)
+            {
+                return r;
+            }
+
+            var result = new FunctionResult();
+            if (value is string strValue)
+            {
+                result.Data.Add("Result", strValue);
+            }
+            else
+            {
+                var valueType = value.GetType();
+                if (valueType == typeof(void))
+                {
+                    result.Data.Add("Result", true);
+                }
+                else if (valueType.IsClass)
+                {
+                    if (value is IDictionary dic)
+                    {
+                        foreach (var key in dic)
+                        {
+                            result.Data.Add(key.ToString(), dic[key]);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var pinfo in valueType.GetProperties())
+                        {
+                            result.Data.Add(pinfo.Name, pinfo.GetValue(value));
+                        }
+                    }
+                }
+                else
+                {
+                    result.Data.Add("Result", value);
+                }
+            }
+            return result;
+        }
+
+        public static MethodInfo GetMethod(FunctionItemConfig item)
+        {
             var name = item.Name;
             #region 动态获取方法并缓存
             if (!_Methods.TryGetValue(name, out MethodInfo method))
@@ -146,28 +422,18 @@ namespace AiCodo.Flow.Configs
                 }
             }
             #endregion
+            return method;
+        }
 
+        private static object RunMethod(MethodInfo method, Dictionary<string, object> args)
+        {
+            object value = null;
             #region 设置方法参数
             var pinfos = method.GetParameters();
             var parameters = pinfos.Select(p =>
             {
                 if (args.TryGetValue(p.Name, out object v))
                 {
-                    if (p.ParameterType.IsByRef)
-                    {
-                        if (p.ParameterType.FullName.Equals("System.Int32&"))
-                        {
-                            int i = v.ToInt32();
-                            args[p.Name] = i;
-                            return i;
-                        }
-                        if (p.ParameterType.FullName.Equals("System.Double&"))
-                        {
-                            var i = v.ToDouble();
-                            args[p.Name] = i;
-                            return i;
-                        }
-                    }
                     return v;
                 }
                 if (p.HasDefaultValue)
@@ -179,7 +445,7 @@ namespace AiCodo.Flow.Configs
 
             #region 添加日志
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"开始执行：[{item.Name}]-[{item.DisplayName}]");
+            sb.AppendLine($"开始执行：[{method.Name}]");
             for (int i = 0; i < pinfos.Length; i++)
             {
                 var p = pinfos[i];
@@ -192,85 +458,30 @@ namespace AiCodo.Flow.Configs
                     sb.AppendLine($"{p.Name}={parameters[i]}");
                 }
             }
-            nameof(FunctionService).Log(sb.ToString());
-            #endregion
+            nameof(FuncService).Log(sb.ToString());
             #endregion
 
-            //执行方法
-            object value = null;
+            #endregion
+
             try
             {
-                nameof(FunctionService).Log($"Start [{method.Name}]");
+                nameof(FuncService).Log($"Start [{method.Name}]");
                 value = method.Invoke(null, parameters);
-                nameof(FunctionService).Log($"End [{method.Name}]");
+                nameof(FuncService).Log($"End [{method.Name}]");
+                return value;
             }
             catch (Exception ex)
             {
                 ex.WriteErrorLog();
                 var sbError = new System.Text.StringBuilder();
-                sb.AppendLine($"执行方法出错【{method.Name}】:{ex.Message}");
-                sb.AppendLine(ex.ToString());
+                sbError.AppendLine($"执行方法出错【{method.Name}】:{ex.Message}");
+                sbError.AppendLine(ex.ToString());
                 //method.GetParameters().ForEach(p => sbError.AppendLine($"[{p.Name}]-{p.ParameterType}"));
-                nameof(FunctionService).Log(sbError.ToString(), Category.Exception);
+                nameof(FuncService).Log(sbError.ToString(), Category.Exception);
                 throw new Exception($"执行方法出错【{method.Name}】：{ex.Message}", ex);
             }
-
-            if (value == null)
-            {
-                sb.AppendLine($"执行方法无返回值：[{item.Name}]-[{item.DisplayName}]");
-                return null;
-            }
-
-            if (value is FunctionResult result)
-            {
-                return result;
-            }
-
-            dynamic obj = value;
-            result = new FunctionResult();
-            try
-            {
-                result.ErrorCode = obj.ErrorCode;
-                result.ErrorMessage = obj.ErrorMessage;
-
-                if (!result.IsOK)
-                {
-                    $"FunctionService".Log($"请联系算法工程师，执行方法[{method.Name}]出错,错误码：{result.ErrorCode},错误说明：{result.ErrorMessage}", Category.Exception);
-                    return result;
-                }
-
-                //因为不强依赖，动态加载，所以这里要反射判断返回值类型
-                var dataProperty = value.GetType().GetProperty("Data");
-                if (dataProperty != null)
-                {
-                    if (dataProperty.PropertyType.IsClass)
-                    {
-                        if (dataProperty.PropertyType == typeof(Dictionary<string, object>))
-                        {
-                            Dictionary<string, object> kvs = dataProperty.GetValue(value) as Dictionary<string, object>;
-                            kvs.ForEach(kv => result.Data.Add(kv.Key, kv.Value));
-                        }
-                        else
-                        {
-                            var data = dataProperty.GetValue(value);
-                            foreach (var pinfo in dataProperty.PropertyType.GetProperties())
-                            {
-                                result.Data.Add(pinfo.Name, pinfo.GetValue(data));
-                            }
-                        }
-                    }
-                    else if (dataProperty.PropertyType == typeof(bool))
-                    {
-                        result.Data.Add("Result", (bool)obj.Data);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"执行方法成功，但转换结果出错：{ex.Message}", ex);
-            }
-            return result;
         }
+
         public static Type GetType(string asmName, string asmFileName, string className)
         {
             Assembly asm = GetAssembly(asmName, asmFileName);
@@ -313,18 +524,6 @@ namespace AiCodo.Flow.Configs
                     //asm = Assembly.LoadFrom(fileName);
                     if (asm != null)
                     {
-                        if (asm.GetName().Name.Equals("ImageFunction"))
-                        {
-                            var version = asm.GetName().Version.ToString();
-                            if (FunctionConfig.Current.ImageFunctionVersion.IsNotEmpty())
-                            {
-                                if (version != FunctionConfig.Current.ImageFunctionVersion)
-                                {
-                                    "FunctionService".Log($"算法程序版本[{version}]与配置版本[{FunctionConfig.Current.ImageFunctionVersion}]不一致：", Category.Warn);
-                                }
-                            }
-                        }
-
                         LoadAllReferenced(asm);
                     }
                 }
@@ -337,46 +536,7 @@ namespace AiCodo.Flow.Configs
             return asm;
         }
 
-        //public static void CheckMethodItems(string assemblyName = "", string fileName = "")
-        //{
-        //    var asm = GetAssembly(assemblyName, fileName);
-        //    if (asm != null)
-        //    {
-        //        FunctionConfig.Current.ImageFunctionVersion = asm.GetName().Version.ToString();
-        //        foreach (var type in asm.GetTypes())
-        //        {
-        //            foreach (var method in type.GetMethods().Where(m => m.GetCustomAttributes().FirstOrDefault(f => f.GetType().FullName.Equals(ExportFullName)) != null))
-        //            {
-        //                var methodName = method.Name;
-        //                var configItem = FunctionConfig.Current.Items.FirstOrDefault(f => f.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
-
-        //                if (configItem != null && configItem is FunctionItemConfig aitem) //已有配置，检查参数名
-        //                {
-        //                    ResetItemParameters(aitem, method);
-        //                }
-        //                else
-        //                {
-        //                    var item = new FunctionItemConfig
-        //                    {
-        //                        Name = methodName,
-        //                        DisplayName = methodName,
-        //                        Location = new FunctionItemLocation
-        //                        {
-        //                            AsmName = assemblyName,
-        //                            FileName = fileName,
-        //                            ClassName = type.FullName,
-        //                            MethodName = methodName
-        //                        }
-        //                    };
-        //                    ResetItemParameters(item, method);
-        //                    FunctionConfig.Current.Items.Add(item);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
-        public static MethodInfo GetMethod(this FunctionItemLocation item)
+        public static MethodInfo GetMethod(FunctionItemLocation item)
         {
             MethodInfo method;
             if (item.IsEmptyConfig())
@@ -414,12 +574,12 @@ namespace AiCodo.Flow.Configs
                                 {
                                     var subAsm = _LoadContext.LoadFromAssemblyPath(fileName);
                                     // var subAsm = Assembly.LoadFrom(fileName);
-                                    typeof(FunctionService).Log($"加载文件{fileName}");
+                                    typeof(FuncService).Log($"加载文件{fileName}");
                                     LoadAllReferenced(subAsm);
                                 }
                                 catch (Exception loadEx)
                                 {
-                                    typeof(FunctionService).Log($"Load{fileName}\r\n {loadEx.ToString()}");
+                                    typeof(FuncService).Log($"Load{fileName}\r\n {loadEx.ToString()}");
                                 }
                             }
                         }
@@ -428,111 +588,116 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        public static void ResetItemParameters(FunctionItemConfig item, MethodInfo method)
+        public static void SetMethod(string name, MethodInfo method)
         {
-            var returnType = method.ReturnType;
-            var parameters = item.Parameters.ToList();
-            item.Parameters.Clear();
-            method.GetParameters()
-                .ForEach(mp =>
-                {
-                    var p = parameters.FirstOrDefault(f => f.Name.Equals(mp.Name, StringComparison.OrdinalIgnoreCase));
-                    if (p == null)
-                    {
-                        p = new ParameterItem
-                        {
-                            Name = mp.Name,
-                            TypeName = GetParameterTypeName(mp.ParameterType)
-                        };
-                    }
-                    else if (p.TypeName == "String")
-                    {
-                        p.TypeName = GetParameterTypeName(mp.ParameterType);
-                    }
-                    item.Parameters.Add(p);
-                });
-
-            var resultParameters = item.ResultParameters.ToList();
-            item.ResultParameters.Clear();
-            var dataProperty = returnType.GetProperty("Data");
-            if (dataProperty != null)
-            {
-                if (dataProperty.PropertyType.IsClass)
-                {
-                    if (dataProperty.PropertyType == typeof(Dictionary<string, object>))
-                    {
-
-                    }
-                    else
-                    {
-                        foreach (var pinfo in dataProperty.PropertyType.GetProperties())
-                        {
-                            var p = resultParameters.FirstOrDefault(f => f.Name.Equals(pinfo.Name, StringComparison.OrdinalIgnoreCase));
-                            if (p == null)
-                            {
-                                p = new ResultParameter
-                                {
-                                    Name = pinfo.Name,
-                                    TypeName = GetParameterTypeName(pinfo.PropertyType)
-                                };
-                            }
-                            item.ResultParameters.Add(p);
-                        }
-                    }
-                }
-
-                if (dataProperty.PropertyType == typeof(bool))
-                {
-                    var p = resultParameters.FirstOrDefault(f => f.Name.Equals("Result", StringComparison.OrdinalIgnoreCase));
-                    if (p == null)
-                    {
-                        p = new ResultParameter
-                        {
-                            Name = "Result",
-                            TypeName = GetParameterTypeName(typeof(bool))
-                        };
-                    }
-                    item.ResultParameters.Add(p);
-                }
-            }
+            _Methods[name] = method;
         }
 
-        private static string GetParameterTypeName(Type type)
-        {
-            if (type.IsByRef)
-            {
-                var atype = type.Assembly.GetType(type.FullName.TrimEnd('&'));
-                if (atype != null)
-                {
-                    type = atype;
-                }
-                else
-                {
-                    throw new Exception($"类型错误[{type.FullName}]");
-                }
-            }
+        //public static void ResetItemParameters(FunctionItemConfig item, MethodInfo method)
+        //{
+        //    var returnType = method.ReturnType;
+        //    var parameters = item.Parameters.ToList();
+        //    item.Parameters.Clear();
+        //    method.GetParameters()
+        //        .ForEach(mp =>
+        //        {
+        //            var p = parameters.FirstOrDefault(f => f.Name.Equals(mp.Name, StringComparison.OrdinalIgnoreCase));
+        //            if (p == null)
+        //            {
+        //                p = new ParameterItem
+        //                {
+        //                    Name = mp.Name,
+        //                    TypeName = GetParameterTypeName(mp.ParameterType)
+        //                };
+        //            }
+        //            else if (p.TypeName == "String")
+        //            {
+        //                p.TypeName = GetParameterTypeName(mp.ParameterType);
+        //            }
+        //            item.Parameters.Add(p);
+        //        });
 
-            if (type == typeof(bool))
-            {
-                return "Bool";
-            }
+        //    var resultParameters = item.ResultParameters.ToList();
+        //    item.ResultParameters.Clear();
+        //    var dataProperty = returnType.GetProperty("Data");
+        //    if (dataProperty != null)
+        //    {
+        //        if (dataProperty.PropertyType.IsClass)
+        //        {
+        //            if (dataProperty.PropertyType == typeof(Dictionary<string, object>))
+        //            {
 
-            if (type == typeof(int))
-            {
-                return "Int";
-            }
+        //            }
+        //            else
+        //            {
+        //                foreach (var pinfo in dataProperty.PropertyType.GetProperties())
+        //                {
+        //                    var p = resultParameters.FirstOrDefault(f => f.Name.Equals(pinfo.Name, StringComparison.OrdinalIgnoreCase));
+        //                    if (p == null)
+        //                    {
+        //                        p = new ResultParameter
+        //                        {
+        //                            Name = pinfo.Name,
+        //                            TypeName = GetParameterTypeName(pinfo.PropertyType)
+        //                        };
+        //                    }
+        //                    item.ResultParameters.Add(p);
+        //                }
+        //            }
+        //        }
 
-            if (type == typeof(float) || type == typeof(Single))
-            {
-                return "Single";
-            }
-            if (type == typeof(double))
-            {
-                return "Double";
-            }
+        //        if (dataProperty.PropertyType == typeof(bool))
+        //        {
+        //            var p = resultParameters.FirstOrDefault(f => f.Name.Equals("Result", StringComparison.OrdinalIgnoreCase));
+        //            if (p == null)
+        //            {
+        //                p = new ResultParameter
+        //                {
+        //                    Name = "Result",
+        //                    TypeName = GetParameterTypeName(typeof(bool))
+        //                };
+        //            }
+        //            item.ResultParameters.Add(p);
+        //        }
+        //    }
+        //}
 
-            return "String";
-        }
+        //private static string GetParameterTypeName(Type type)
+        //{
+        //    if (type.IsByRef)
+        //    {
+        //        var atype = type.Assembly.GetType(type.FullName.TrimEnd('&'));
+        //        if (atype != null)
+        //        {
+        //            type = atype;
+        //        }
+        //        else
+        //        {
+        //            throw new Exception($"类型错误[{type.FullName}]");
+        //        }
+        //    }
+
+        //    if (type == typeof(bool))
+        //    {
+        //        return "Bool";
+        //    }
+
+        //    if (type == typeof(int))
+        //    {
+        //        return "Int";
+        //    }
+
+        //    if (type == typeof(float) || type == typeof(Single))
+        //    {
+        //        return "Single";
+        //    }
+        //    if (type == typeof(double))
+        //    {
+        //        return "Double";
+        //    }
+
+        //    return "String";
+        //}
     }
 
     public class CollectibleAssemblyLoadContext
@@ -541,19 +706,19 @@ namespace AiCodo.Flow.Configs
 
         public IEnumerable<Assembly> GetAssemblies()
         {
-            foreach(var a in _Assemblies)
+            foreach (var a in _Assemblies)
             {
                 yield return a.Value;
             }
-            foreach(var a in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                yield return a;
-            }
+            //foreach(var a in AppDomain.CurrentDomain.GetAssemblies())
+            //{
+            //    yield return a;
+            //}
         }
 
         public Assembly LoadFromAssemblyPath(string fileName)
         {
-            var asm= Assembly.LoadFrom(fileName);
+            var asm = Assembly.LoadFrom(fileName);
             _Assemblies[asm.GetName().Name] = asm;
             return asm;
         }

@@ -6,14 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AiCodo" Version="1.0.7" />
-    <PackageReference Include="DynamicExpresso.Core" Version="2.13.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
-    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AiCodo\AiCodo.csproj" />
+    <PackageReference Include="AiCodo" Version="1.0.8" />
   </ItemGroup>
 
 </Project>

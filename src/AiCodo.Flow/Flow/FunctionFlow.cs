@@ -13,10 +13,13 @@
 // *************************************************************************************************
 namespace AiCodo.Flow.Configs
 {
+    using DynamicExpresso;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
+    using System.Threading;
     using System.Xml.Serialization;
 
     public partial class FlowInputParameter : ParameterBase
@@ -253,15 +256,19 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 Actions
-        private CollectionBase<FunctionFlowAction> _Actions = null;
+        private CollectionBase<FlowActionBase> _Actions = null;
         [XmlElement("Action", typeof(FunctionFlowAction))]
-        public CollectionBase<FunctionFlowAction> Actions
+        [XmlElement("Flow", typeof(SubFlowAction))]
+        [XmlElement("Switch", typeof(SwitchAction))]
+        [XmlElement("ForEach", typeof(ForEachAction))]
+        [XmlElement("While", typeof(WhileAction))]
+        public CollectionBase<FlowActionBase> Actions
         {
             get
             {
                 if (_Actions == null)
                 {
-                    _Actions = new CollectionBase<FunctionFlowAction>();
+                    _Actions = new CollectionBase<FlowActionBase>();
                     _Actions.CollectionChanged += Actions_CollectionChanged;
                 }
                 return _Actions;
@@ -299,7 +306,7 @@ namespace AiCodo.Flow.Configs
         }
         protected virtual void OnActionsAdded(IList newItems)
         {
-            foreach (FunctionFlowAction item in newItems)
+            foreach (FlowActionBase item in newItems)
             {
                 item.ConfigRoot = this;
             }
@@ -307,7 +314,7 @@ namespace AiCodo.Flow.Configs
 
         protected virtual void OnActionsRemoved(IList oldItems)
         {
-            foreach (FunctionFlowAction item in oldItems)
+            foreach (FlowActionBase item in oldItems)
             {
                 item.ConfigRoot = null;
             }
@@ -322,15 +329,15 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 Results
-        private CollectionBase<FlownResultParameter> _Results = null;
-        [XmlArray("Results"), XmlArrayItem("Item", typeof(FlownResultParameter))]
-        public CollectionBase<FlownResultParameter> Results
+        private CollectionBase<FlowResultParameter> _Results = null;
+        [XmlArray("Results"), XmlArrayItem("Item", typeof(FlowResultParameter))]
+        public CollectionBase<FlowResultParameter> Results
         {
             get
             {
                 if (_Results == null)
                 {
-                    _Results = new CollectionBase<FlownResultParameter>();
+                    _Results = new CollectionBase<FlowResultParameter>();
                     _Results.CollectionChanged += Results_CollectionChanged;
                 }
                 return _Results;
@@ -368,7 +375,7 @@ namespace AiCodo.Flow.Configs
         }
         protected virtual void OnResultsAdded(IList newItems)
         {
-            foreach (FlownResultParameter item in newItems)
+            foreach (FlowResultParameter item in newItems)
             {
                 item.ConfigRoot = this;
             }
@@ -376,7 +383,7 @@ namespace AiCodo.Flow.Configs
 
         protected virtual void OnResultsRemoved(IList oldItems)
         {
-            foreach (FlownResultParameter item in oldItems)
+            foreach (FlowResultParameter item in oldItems)
             {
                 item.ConfigRoot = null;
             }
@@ -388,9 +395,9 @@ namespace AiCodo.Flow.Configs
             if (Actions.Count > 0)
             {
                 var id = 0;
-                foreach(var action in Actions)
+                foreach (var action in Actions)
                 {
-                    if(action.ID.IsNotEmpty() && action.ID.StartsWith("A"))
+                    if (action.ID.IsNotEmpty() && action.ID.StartsWith("A"))
                     {
                         var num = action.ID.Substring(1).ToInt32();
                         if (num > id)
@@ -399,7 +406,7 @@ namespace AiCodo.Flow.Configs
                         }
                     }
                 }
-                return $"A{(id+1).ToString("d2")}";
+                return $"A{(id + 1).ToString("d2")}";
             }
 
             return $"A01";
@@ -420,7 +427,7 @@ namespace AiCodo.Flow.Configs
             }
         }
 
-        public virtual IEnumerable<FunctionFlowAction> GetActions()
+        public virtual IEnumerable<FlowActionBase> GetActions()
         {
             foreach (var refItem in GetRefFlowItems())
             {
@@ -672,7 +679,7 @@ namespace AiCodo.Flow.Configs
         #endregion
     }
 
-    public partial class FunctionFlowAction : ConfigItemBase
+    public partial class FlowActionBase : ConfigItemBase
     {
         #region 属性 ID
         private string _ID = string.Empty;
@@ -715,24 +722,6 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        #region 属性 FunctionName
-        private string _FunctionName = string.Empty;
-        [XmlAttribute("FunctionName")]
-        public string FunctionName
-        {
-            get
-            {
-                return _FunctionName;
-            }
-            set
-            {
-                _FunctionName = value;
-                RaisePropertyChanged("FunctionName");
-                RaisePropertyChanged("FunctionItem");
-            }
-        }
-        #endregion
-
         #region 属性 IgnoreErrors
         private string _IgnoreErrors = string.Empty;
         [XmlAttribute("IgnoreErrors"), DefaultValue("")]
@@ -750,23 +739,6 @@ namespace AiCodo.Flow.Configs
                 }
                 _IgnoreErrors = value;
                 RaisePropertyChanged("IgnoreErrors");
-            }
-        }
-        #endregion
-
-        #region 属性 RunTag
-        private string _RunTag = string.Empty;
-        [XmlAttribute("RunTag"), DefaultValue("")]
-        public string RunTag
-        {
-            get
-            {
-                return _RunTag;
-            }
-            set
-            {
-                _RunTag = value;
-                RaisePropertyChanged("RunTag");
             }
         }
         #endregion
@@ -954,6 +926,135 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
+        protected override void OnConfigRootChanged()
+        {
+            base.OnConfigRootChanged();
+            Parameters.ForEach(p => p.ConfigRoot = this.ConfigRoot);
+            ResultParameters.ForEach(p => p.ConfigRoot = this.ConfigRoot);
+        }
+
+        public virtual bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        {
+            actionResult = null;
+            return false;
+        }
+
+        protected Dictionary<string, object> CreateFunctionArgs(Dictionary<string, object> flowArgs, Interpreter exp, IFunctionItem algItem)
+        {
+            #region 准备参数
+            var args = new Dictionary<string, object>();
+            foreach (var p in algItem.GetParameters())
+            {
+                try
+                {
+                    object pvalue = null;
+                    var actionParameter = Parameters.FirstOrDefault(f => f.Name.Equals(p.Name, StringComparison.OrdinalIgnoreCase));
+                    if (actionParameter != null)
+                    {
+                        if (actionParameter.IsInherit || actionParameter.Expression.IsNullOrEmpty())
+                        {
+                            object defaultValue = p.DefaultValue;
+                            pvalue = p.GetValue(defaultValue);
+                        }
+                        else
+                        {
+                            pvalue = p.GetValue(exp.Eval(actionParameter.Expression));
+                        }
+                        args[p.Name] = pvalue;
+                    }
+                    else
+                    {
+                        if (flowArgs.TryGetValue(p.Name, out object pv))
+                        {
+                            args[p.Name] = p.GetValue(pv);
+                        }
+                        else
+                        {
+                            args[p.Name] = p.GetValue(p.DefaultValue);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Log($"函数[{Name}] 设置参数值出错[{p.Name}] ：{ex}");
+                    throw;
+                }
+            }
+            #endregion
+            return args;
+        }
+
+        protected void CheckAssert(FunctionFlowItem flow, Interpreter exp)
+        {
+            if (Asserts.Count > 0)
+            {
+                foreach (var assert in Asserts)
+                {
+                    if (assert.Condition.IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        var passed = exp.Eval(assert.Condition).ToBoolean();
+                        if (passed)
+                        {
+                            continue;
+                        }
+                        throw new FunctionExecuteException($"流程[{flow.Name}]节点[{Name}] Assert异常：{assert.Error}", FunctionResult.AssertError);
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }
+            }
+        }
+
+        protected void CheckWait(Dictionary<string, object> flowArgs)
+        {
+            #region wait
+            if (Wait != null && Wait.Condition.IsNotEmpty())
+            {
+                var maxCount = Wait.MaxCount > 0 ? Wait.MaxCount : 0;
+                var checkMS = Wait.CheckMS > 0 ? Wait.CheckMS : 100;
+                var checkCount = 0;
+                while (!Wait.Condition.Eval(flowArgs).ToBoolean())
+                {
+                    checkCount++;
+                    if (maxCount > 0 && checkCount >= maxCount)
+                    {
+                        this.Log($"等待条件失败，重试次数[{checkCount}]");
+                        break;
+                    }
+                    Thread.Sleep(checkMS);
+                }
+            }
+            #endregion
+        }
+    }
+
+    public partial class FunctionFlowAction : FlowActionBase
+    {
+        #region 属性 FunctionName
+        private string _FunctionName = string.Empty;
+        [XmlAttribute("FunctionName")]
+        public string FunctionName
+        {
+            get
+            {
+                return _FunctionName;
+            }
+            set
+            {
+                _FunctionName = value;
+                RaisePropertyChanged("FunctionName");
+                RaisePropertyChanged("FunctionItem");
+            }
+        }
+        #endregion
+
         #region 属性 FunctionItem
         [XmlIgnore]
         public FunctionItemBase FunctionItem
@@ -970,11 +1071,46 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        protected override void OnConfigRootChanged()
+        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
-            base.OnConfigRootChanged();
-            Parameters.ForEach(p => p.ConfigRoot = this.ConfigRoot);
-            ResultParameters.ForEach(p => p.ConfigRoot = this.ConfigRoot);
+            var exp = ExpressionHelper.GetInterpreter(flowArgs);
+            actionResult = null;
+
+            CheckWait(flowArgs);
+            if (Condition.IsNotEmpty())
+            {
+                if (exp.Eval(Condition).ToBoolean())
+                {
+                    this.Log($"{Name} 不满足执行条件，执行跳过");
+                    return false;
+                }
+            }
+
+            CheckAssert(flow, exp);
+
+            if (FunctionName.IsNullOrEmpty())
+            {
+                throw new FunctionExecuteException($"流程[{flow.Name}]节点[{Name}]算法没有设置", FunctionResult.FlowConfigError);
+            }
+
+            var functionName = FunctionName;
+            var algItem = MethodServiceFactory.GetItem(functionName);
+            if (algItem == null)
+            {
+                throw new FunctionExecuteException($"算法[{FunctionName}]不存在", FunctionResult.NotFound);
+            }
+
+            Dictionary<string, object> args = CreateFunctionArgs(flowArgs, exp, algItem);
+            try
+            {
+                actionResult = MethodServiceFactory.Run(functionName, args);
+            }
+            catch (Exception ex)
+            {
+                ex.WriteErrorLog();
+                actionResult = new FunctionResult { ErrorCode = FunctionResult.UnknowError, ErrorMessage = ex.Message };
+            }
+            return true;
         }
     }
 
@@ -1019,9 +1155,9 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 FlowAction
-        private FunctionFlowAction _FlowAction = null;
+        private FlowActionBase _FlowAction = null;
         [XmlIgnore]
-        public FunctionFlowAction FlowAction
+        public FlowActionBase FlowAction
         {
             get
             {
@@ -1036,7 +1172,7 @@ namespace AiCodo.Flow.Configs
         #endregion
     }
 
-    public partial class FlownResultParameter : ParameterBase
+    public partial class FlowResultParameter : ParameterBase
     {
         #region 属性 Expression
         private string _Expression = string.Empty;
@@ -1055,7 +1191,7 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
     }
-    
+
 
     public partial class ActionOutputParameter : ParameterBase
     {
@@ -1098,9 +1234,9 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 FlowAction
-        private FunctionFlowAction _FlowAction = null;
+        private FlowActionBase _FlowAction = null;
         [XmlIgnore]
-        public FunctionFlowAction FlowAction
+        public FlowActionBase FlowAction
         {
             get
             {
@@ -1135,18 +1271,32 @@ namespace AiCodo.Flow.Configs
         #endregion
     }
 
+    public static class FunctionResultHelper
+    {
+        public static bool IsOK(this IFunctionResult result)
+        {
+            return (result.ErrorCode.IsNullOrEmpty() || result.ErrorCode == FunctionResult.OK) && result.ErrorMessage.IsNullOrEmpty();
+        }
+    }
+
     /// <summary>
     /// 算法统一返回的结果
     /// </summary>
-    public class FunctionResult
+    public class FunctionResult : IFunctionResult
     {
         public const string OK = "0";
 
+        //方法不存在
         public const string NotFound = "1";
 
+        //其它未知错误
         public const string UnknowError = "2";
 
+        //断言错误
         public const string AssertError = "3";
+
+        //在执行函数内部发送的错误
+        public const string MethodInnerError = "4";
 
         //流程配置错误
         public const string FlowConfigError = "10";
@@ -1159,12 +1309,38 @@ namespace AiCodo.Flow.Configs
         //返回值，没有则保留默认值
         public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
-        public bool IsOK
+        public static bool IsOKCode(string errorCode)
         {
-            get
+            return errorCode.IsNullOrEmpty() || errorCode == OK;
+        }
+
+        public FunctionResult()
+        {
+
+        }
+
+        public FunctionResult(Dictionary<string, object> data)
+        {
+            if (data != null)
             {
-                return (ErrorCode.IsNullOrEmpty() || ErrorCode == OK) && ErrorMessage.IsNullOrEmpty();
+                data.ForEach(d => Data[d.Key] = d.Value);
             }
+        }
+
+        public bool TryGetValue(string name, out object value)
+        {
+            return Data.TryGetValue(name, out value);
+        }
+
+        public void SetValue(string name, object value)
+        {
+            Data[name] = value;
+        }
+
+        public FunctionResult SetData(string name, object value)
+        {
+            SetValue(name, value);
+            return this;
         }
     }
 

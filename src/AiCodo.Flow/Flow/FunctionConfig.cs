@@ -12,12 +12,14 @@
 // 修改记录：
 // *************************************************************************************************
 
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Serialization;
 
 namespace AiCodo.Flow.Configs
@@ -26,6 +28,17 @@ namespace AiCodo.Flow.Configs
     public partial class FunctionConfig : ConfigFile
     {
         const string _ConfigFile = "FunctionConfig.xml";
+
+        public const string Type_Bool= "Bool";    
+        public const string Type_Int= "Int";     
+        public const string Type_Long= "Long";    
+        public const string Type_Single = "Single";  
+        public const string Type_Double  = "Double";  
+        public const string Type_String  = "String";  
+        public const string Type_FilePath= "FilePath";
+        public const string Type_Image   = "Image";   
+        public const string Type_Object  = "Object";  
+        public const string Type_List    = "List";
 
         static readonly List<ParameterTypeDefine> _StaticTypes = new List<ParameterTypeDefine>
         {
@@ -45,37 +58,9 @@ namespace AiCodo.Flow.Configs
 
         public static void Reload()
         {
-            var config = _ConfigFile.LoadXDoc<FunctionConfig>();
-            if (config != null)
-            {
-                Current = config;
-            }
-            else
-            {
-                Current = new FunctionConfig();
-            }
+            var config = CreateOrLoad<FunctionConfig>(_ConfigFile);
+            Current = config;
         }
-
-        #region 属性 ImageFunctionVersion
-        private string _ImageFunctionVersion = string.Empty;
-        [XmlAttribute("ImageFunctionVersion"), DefaultValue("")]
-        public string ImageFunctionVersion
-        {
-            get
-            {
-                return _ImageFunctionVersion;
-            }
-            set
-            {
-                if (_ImageFunctionVersion == value)
-                {
-                    return;
-                }
-                _ImageFunctionVersion = value;
-                RaisePropertyChanged("ImageFunctionVersion");
-            }
-        }
-        #endregion
 
         #region 属性 ConfigFileName
         private string _ConfigFileName = string.Empty;
@@ -100,6 +85,68 @@ namespace AiCodo.Flow.Configs
             {
                 _ConfigFileName = value;
                 RaisePropertyChanged("ConfigFileName");
+            }
+        }
+        #endregion
+
+        #region 属性 Assemblies
+        private CollectionBase<AssemblyItem> _Assemblies = null;
+        [XmlElement("Assembly", typeof(AssemblyItem))]
+        public CollectionBase<AssemblyItem> Assemblies
+        {
+            get
+            {
+                if (_Assemblies == null)
+                {
+                    _Assemblies = new CollectionBase<AssemblyItem>();
+                    _Assemblies.CollectionChanged += Assemblies_CollectionChanged;
+                }
+                return _Assemblies;
+            }
+            set
+            {
+                if (_Assemblies != null)
+                {
+                    _Assemblies.CollectionChanged -= Assemblies_CollectionChanged;
+                    OnAssembliesRemoved(_Assemblies);
+                }
+                _Assemblies = value;
+                RaisePropertyChanged("Assemblies");
+                if (_Assemblies != null)
+                {
+                    _Assemblies.CollectionChanged += Assemblies_CollectionChanged;
+                    OnAssembliesAdded(_Assemblies);
+                }
+            }
+        }
+
+        private void Assemblies_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                    OnAssembliesAdded(e.NewItems);
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                    OnAssembliesRemoved(e.OldItems);
+                    break;
+                default:
+                    break;
+            }
+        }
+        protected virtual void OnAssembliesAdded(IList newItems)
+        {
+            foreach (AssemblyItem item in newItems)
+            {
+                item.ConfigRoot = this;
+            }
+        }
+
+        protected virtual void OnAssembliesRemoved(IList oldItems)
+        {
+            foreach (AssemblyItem item in oldItems)
+            {
+                item.ConfigRoot = null;
             }
         }
         #endregion
@@ -358,6 +405,51 @@ namespace AiCodo.Flow.Configs
         {
             return AllTypes.FirstOrDefault(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
+    }
+
+    public class AssemblyItem : ConfigItemBase
+    {
+        #region 属性 AsmName
+        private string _AsmName = string.Empty;
+        [XmlAttribute("AsmName"), DefaultValue("")]
+        public string AsmName
+        {
+            get
+            {
+                return _AsmName;
+            }
+            set
+            {
+                if (_AsmName == value)
+                {
+                    return;
+                }
+                _AsmName = value;
+                RaisePropertyChanged("AsmName");
+            }
+        }
+        #endregion
+
+        #region 属性 FileName
+        private string _FileName = string.Empty;
+        [XmlAttribute("FileName"), DefaultValue("")]
+        public string FileName
+        {
+            get
+            {
+                return _FileName;
+            }
+            set
+            {
+                if (_FileName == value)
+                {
+                    return;
+                }
+                _FileName = value;
+                RaisePropertyChanged("FileName");
+            }
+        }
+        #endregion
     }
 
     public class ParameterTypeDefine : ConfigItemBase
@@ -641,6 +733,7 @@ namespace AiCodo.Flow.Configs
             return ResultParameters.ToList();
         }
     }
+
     public partial class FunctionItemConfig : FunctionItemBase
     {
         #region 属性 Location

@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Entities\ConfigFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EventCenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ExpressionHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\KeyValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ParallelQueue.cs" />
