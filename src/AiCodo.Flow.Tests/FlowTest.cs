@@ -16,7 +16,7 @@ namespace AiCodo.Tests
         [Test]
         public void BasicLogic()
         {
-            FunctionFlowItem flow = CreatePlusFlow();
+            FunctionFlowConfig flow = CreatePlusFlow();
 
             var context = new FlowContext(new Dictionary<string, object>
             {
@@ -30,9 +30,9 @@ namespace AiCodo.Tests
             Assert.That(v2, Is.EqualTo(26));
         }
 
-        private static FunctionFlowItem CreatePlusFlow()
+        private static FunctionFlowConfig CreatePlusFlow()
         {
-            var flow = new FunctionFlowItem();
+            var flow = new FunctionFlowConfig();
             var action1 = new FunctionFlowAction
             {
                 ID = "plus",
@@ -106,7 +106,7 @@ namespace AiCodo.Tests
         [Test]
         public void SwitchLogic()
         {
-            FunctionFlowItem flow = CreateSwitchFlow();
+            FunctionFlowConfig flow = CreateSwitchFlow();
             var context = new FlowContext(new Dictionary<string, object>
             {
                 { "x",12},
@@ -130,9 +130,9 @@ namespace AiCodo.Tests
             Assert.That(v2, Is.EqualTo(20));
 
         }
-        private static FunctionFlowItem CreateSwitchFlow()
+        private static FunctionFlowConfig CreateSwitchFlow()
         {
-            var flow = new FunctionFlowItem();
+            var flow = new FunctionFlowConfig();
             var action1 = new FunctionFlowAction
             {
                 ID = "plus",
@@ -319,7 +319,7 @@ namespace AiCodo.Tests
         [Test]
         public void ForEachLogic()
         {
-            FunctionFlowItem flow = CreateForEachFlow();
+            FunctionFlowConfig flow = CreateForEachFlow();
             var context = new FlowContext(new Dictionary<string, object>
             {
                 { "items",
@@ -346,9 +346,9 @@ namespace AiCodo.Tests
 
         }
 
-        private static FunctionFlowItem CreateForEachFlow()
+        private static FunctionFlowConfig CreateForEachFlow()
         {
-            var flow = new FunctionFlowItem();
+            var flow = new FunctionFlowConfig();
 
             var feach = new ForEachAction
             {
@@ -545,7 +545,7 @@ namespace AiCodo.Tests
         [Test]
         public void WhileLogic()
         {
-            FunctionFlowItem flow = CreateWhileFlow();
+            FunctionFlowConfig flow = CreateWhileFlow();
             var context = new FlowContext(new Dictionary<string, object>
             {
                 { "items",
@@ -572,9 +572,9 @@ namespace AiCodo.Tests
             }
         }
 
-        private static FunctionFlowItem CreateWhileFlow()
+        private static FunctionFlowConfig CreateWhileFlow()
         {
-            var flow = new FunctionFlowItem();
+            var flow = new FunctionFlowConfig();
 
             var w = new WhileAction
             {

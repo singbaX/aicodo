@@ -5,6 +5,7 @@
     xmlns:ai="clr-namespace:AiCodo.Wpf.Controls">
 
     <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/Buttons.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/AiWindow.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/AiPage.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/DialogWindow.xaml"/> 

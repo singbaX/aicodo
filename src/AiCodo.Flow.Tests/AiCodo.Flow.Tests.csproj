@@ -9,9 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
@@ -20,7 +17,25 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AiCodo.Data.MySql\AiCodo.Data.MySql.csproj" />
+    <ProjectReference Include="..\AiCodo.Data\AiCodo.Data.csproj" />
     <ProjectReference Include="..\AiCodo.Flow\AiCodo.Flow.csproj" />
+    <ProjectReference Include="..\AiCodo\AiCodo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App_Data\Configs\FunctionFlowIndex.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\Configs\services\F0001.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\Configs\services\Ref0001.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\Configs\sql.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

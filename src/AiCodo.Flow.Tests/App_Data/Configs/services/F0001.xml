@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Flow ID="F0001" Name="sys_user.insert" RefItem="Ref0001">
+	<Parameters>
+		<Item Name="UserName" DisplayName="用户名" TypeName="String"/>
+		<Item Name="Password" DisplayName="密码"/>
+		<Item Name="Email" DisplayName="邮箱"/>
+	</Parameters>
+	<Action ID="A01" Name="User.SelectByUserName" DisplayName="新增用户" FunctionName="sql.sys_user.SelectByUserName">
+		<Input Name="UserName" TypeName="String" />
+		<Output Name="Result" TypeName="Object" ResetInputName="NameUser"/>
+	</Action>
+	<Action ID="A02" Name="User.SelectByEmail" DisplayName="新增用户" FunctionName="sql.sys_user.SelectByEmail">
+		<Input Name="Email" TypeName="String" />
+		<Output Name="Result" TypeName="Object" ResetInputName="EmailUser"/>
+	</Action>
+	<Action ID="A03" Name="User.Insert" DisplayName="新增用户" FunctionName="sql.sys_user.insert">
+		<Assert Condition="NameUser==null" Error="相同用户名的用户记录已存在"/>
+		<Assert Condition="EmailUser==null" Error="相同邮箱的用户记录已存在"/>
+		<Input Name="UserName" TypeName="String" />
+		<Input Name="Password" TypeName="String" />
+		<Input Name="Email" TypeName="String" />
+		<Input Name="IsValid" TypeName="Bool" />
+		<Input Name="CreateUser" TypeName="Int" />
+		<Input Name="CreateTime" TypeName="DateTime" />
+		<Input Name="UpdateUser" TypeName="Int" />
+		<Input Name="UpdateTime" TypeName="DateTime" />
+		<Output Name="Result" TypeName="Int" ResultName="UserID"/>
+	</Action>
+	<Results>
+		<Item Name="UserName" DisplayName="用户名" Expression="UserName"/>
+	</Results>
+</Flow>

@@ -13,14 +13,12 @@
 namespace AiCodo.Flow.Configs
 {
     using System;
-    using System.Collections.Generic;
     using System.Collections;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using System.Diagnostics;
-    using System.Threading;
     public class FlowContext
     {
         private Dictionary<string, object> _Args { get; set; } = new Dictionary<string, object>();
@@ -70,48 +68,49 @@ namespace AiCodo.Flow.Configs
             }
         }
 
-        public Task<DynamicEntity> ExecuteFlow(FunctionFlowItem flow)
+        public Task<DynamicEntity> ExecuteFlow(FunctionFlowConfig flow)
         {
             FlowID = flow.ID;
             FlowName = flow.Name;
 
             return Task.Run(() =>
-            {
+            {                
                 var actions = flow.GetActions().ToList();
-                var data= ExecuteFlowActions(flow, actions);
+                var data = ExecuteFlowActions(flow, actions, out var flowArgs);
                 if (flow.Results.Count > 0)
                 {
-                    var exp = ExpressionHelper.GetInterpreter(data);
-                    var result = new DynamicEntity();
-                    foreach(var r in flow.Results)
+                    var exp = ExpressionHelper.GetInterpreter(flowArgs);
+                    foreach (var r in flow.Results)
                     {
                         object value = null;
                         if (r.Expression.IsNullOrEmpty())
                         {
-                            value = data.GetValue(r.Name);
+                            if(flowArgs.TryGetValue(r.Name,out value))
+                            {
+                            }
+                            else
+                            {
+                                continue;
+                            }
                         }
                         else
                         {
                             value = exp.Eval(r.Expression);
                         }
-                        result.SetValue(r.Name, value);
+                        data.SetValue(r.Name, value);
                     }
-                    return result;
                 }
-                else
-                {
-                    return data;
-                }
+                return data;
             });
         }
 
-        internal DynamicEntity ExecuteFlowActions(FunctionFlowItem flow, IEnumerable<FlowActionBase> actions)
+        internal DynamicEntity ExecuteFlowActions(FunctionFlowConfig flow, IEnumerable<FlowActionBase> actions, out Dictionary<string, object> flowArgs)
         {
             var result = new DynamicEntity();
             var errorCode = "";
             var errorMessage = "";
-            var flowArgs = new Dictionary<string, object>();
-            _Args.ForEach(a => flowArgs[a.Key] = a.Value);
+            flowArgs = CreateFlowArgs(flow);
+
             flowArgs["HasError"] = false;
             try
             {
@@ -221,6 +220,38 @@ namespace AiCodo.Flow.Configs
             }
 
             return result;
+        }
+
+        private Dictionary<string, object> CreateFlowArgs(FunctionFlowConfig flow)
+        {
+            var flowArgs = new Dictionary<string, object>();
+            _Args.ForEach(a => flowArgs[a.Key] = a.Value);
+
+            var flowParameters = flow.GetParameters().ToList();
+            if (flowParameters.Count > 0)
+            {
+                flowParameters.ForEach(p =>
+                {
+                    object value = "";
+                    if (p.DefaultValue.StartsWith("="))
+                    {
+                        value = p.DefaultValue.Substring(1).Eval(flowArgs);
+                    }
+                    else
+                    {
+                        if (flowArgs.TryGetValue(p.Name, out value))
+                        {
+                        }
+                        else
+                        {
+                            value = p.DefaultValue;
+                        }
+                    }
+                    flowArgs[p.Name] = p.GetValue(value);
+                });
+            }
+
+            return flowArgs;
         }
 
         static void ResetResult(DynamicEntity result, Dictionary<string, object> flowArgs, FlowActionBase action, IFunctionResult functionResult)

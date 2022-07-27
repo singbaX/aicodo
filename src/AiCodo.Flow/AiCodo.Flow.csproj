@@ -3,10 +3,23 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <Version>1.0.1.2</Version>
+    <Title>aicodo.wpf</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
+    <Authors>singbax</Authors>
+    <Company>aicodo.com</Company>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AiCodo" Version="1.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="license.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

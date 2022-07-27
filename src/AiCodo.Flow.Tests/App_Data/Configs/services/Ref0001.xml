@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Flow>
+	<Parameters>
+		<Item Name="CreateUser" DisplayName="创建用户" TypeName="Int" DefaultValue="=CurrentUserID"/>
+		<Item Name="CreateTime" DisplayName="创建时间" TypeName="DateTime" DefaultValue="=DateTime.Now"/>
+		<Item Name="UpdateUser" DisplayName="更新用户" TypeName="Int" DefaultValue="=CurrentUserID"/>
+		<Item Name="UpdateTime" DisplayName="更新时间" TypeName="DateTime" DefaultValue="=DateTime.Now"/>
+		<Item Name="IsValid" DisplayName="是否有效" TypeName="Bool" DefaultValue="1"/>
+	</Parameters>
+</Flow>

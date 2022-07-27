@@ -14,8 +14,11 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Entities\ConfigFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventCenter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ByteHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ExpressionHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\KeyValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Locks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Security.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ParallelQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\CollectionBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\DBEntity.cs" />

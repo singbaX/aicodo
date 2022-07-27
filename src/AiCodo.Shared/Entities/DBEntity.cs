@@ -6,7 +6,7 @@
  * license     : MIT
  * description : let me think a while
  */
-namespace AiCodo.Sql
+namespace AiCodo
 {
     using System;
     using System.Collections.Generic;

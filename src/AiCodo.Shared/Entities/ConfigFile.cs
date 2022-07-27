@@ -13,12 +13,10 @@ namespace AiCodo
     {
         private string _FileName = "";
 
-        static string _ConfigRoot = System.IO.Path.Combine(ApplicationConfig.BaseDirectory, ".aicodo");
-
         public static T CreateOrLoad<T>(string fileName) where T : ConfigFile, new()
         {
             T config = default(T);
-            var configFile = System.IO.Path.Combine(_ConfigRoot, fileName);
+            var configFile = fileName.FixedAppConfigPath();
             if (configFile.IsFileExists())
             {
                 config = configFile.LoadXDoc<T>();
@@ -101,12 +99,10 @@ namespace AiCodo
     {
         private string _FileName = "";
 
-        static string _ConfigRoot = System.IO.Path.Combine(ApplicationConfig.BaseDirectory, ".aicodo");
-
         public static T CreateOrLoad<T>(string fileName) where T : JsonConfigFile, new()
         {
             T config = default(T);
-            var configFile = System.IO.Path.Combine(_ConfigRoot, fileName);
+            var configFile = fileName.FixedAppConfigPath();
             if (configFile.IsFileExists())
             {
                 config = configFile.ReadFileText().ToJsonObject<T>();

@@ -87,25 +87,25 @@ namespace AiCodo.Flow.Configs
         #endregion
     }
 
-    public partial class FunctionFlowItemRef : ConfigFile
+    public enum LockMode
     {
-        #region 属性 Name
-        private string _Name = string.Empty;
-        [XmlAttribute("Name")]
-        public string Name
-        {
-            get
-            {
-                return _Name;
-            }
-            set
-            {
-                _Name = value;
-                RaisePropertyChanged("Name");
-            }
-        }
-        #endregion
+        /// <summary>
+        /// 没有锁
+        /// </summary>
+        None,
+        /// <summary>
+        /// 当前对象锁
+        /// </summary>
+        Current,
+        /// <summary>
+        /// 全局锁，锁全局对象
+        /// </summary>
+        Global,
+    }
 
+    [XmlRoot("Flow")]
+    public partial class FunctionRefFlowConfig : FlowItemBase
+    {
         #region 属性 Parameters
         private CollectionBase<FlowInputParameter> _Parameters = null;
         [XmlArray("Parameters"), XmlArrayItem("Item", typeof(FlowInputParameter))]
@@ -170,8 +170,85 @@ namespace AiCodo.Flow.Configs
         #endregion
     }
 
-    public partial class FunctionFlowItem : FlowItemBase
+    [XmlRoot("Flow")]
+    public partial class FunctionFlowConfig : FlowItemBase
     {
+        #region 属性 LockMode
+        private LockMode _LockMode = LockMode.None;
+        [XmlAttribute("LockMode"), DefaultValue(typeof(LockMode),"None")]
+        public LockMode LockMode
+        {
+            get
+            {
+                return _LockMode;
+            }
+            set
+            {
+                _LockMode = value;
+                RaisePropertyChanged(() => LockMode);
+            }
+        }
+        #endregion
+
+        #region 属性 LockID
+        private string _LockID = string.Empty;
+        [XmlAttribute("LockID"), DefaultValue("")]
+        public string LockID
+        {
+            get
+            {
+                return _LockID;
+            }
+            set
+            {
+                if (_LockID == value)
+                {
+                    return;
+                }
+                _LockID = value;
+                RaisePropertyChanged("LockID");
+            }
+        }
+        #endregion
+
+        #region 属性 ErrorMode
+        private FlowErrorMode _ErrorMode = FlowErrorMode.Break;
+        [XmlAttribute("ErrorMode"), DefaultValue(typeof(FlowErrorMode), "Break")]
+        public FlowErrorMode ErrorMode
+        {
+            get
+            {
+                return _ErrorMode;
+            }
+            set
+            {
+                _ErrorMode = value;
+                RaisePropertyChanged("ErrorMode");
+            }
+        }
+        #endregion
+
+        #region 属性 RetryCount
+        private int _RetryCount = 0;
+        [XmlAttribute("RetryCount"), DefaultValue(0)]
+        public int RetryCount
+        {
+            get
+            {
+                return _RetryCount;
+            }
+            set
+            {
+                if (_RetryCount == value)
+                {
+                    return;
+                }
+                _RetryCount = value;
+                RaisePropertyChanged("RetryCount");
+            }
+        }
+        #endregion
+
         #region 属性 RefItem
         private string _RefItem = string.Empty;
         [XmlAttribute("RefItem"), DefaultValue("")]
@@ -318,13 +395,6 @@ namespace AiCodo.Flow.Configs
             {
                 item.ConfigRoot = null;
             }
-        }
-        #endregion
-
-        #region 属性 RefFlowItems
-        public virtual IEnumerable<FunctionFlowItemRef> GetRefFlowItems()
-        {
-            yield break;
         }
         #endregion
 
@@ -487,44 +557,6 @@ namespace AiCodo.Flow.Configs
             {
                 _Name = value;
                 RaisePropertyChanged("Name");
-            }
-        }
-        #endregion
-
-        #region 属性 ErrorMode
-        private FlowErrorMode _ErrorMode = FlowErrorMode.Break;
-        [XmlAttribute("ErrorMode"), DefaultValue(typeof(FlowErrorMode), "Break")]
-        public FlowErrorMode ErrorMode
-        {
-            get
-            {
-                return _ErrorMode;
-            }
-            set
-            {
-                _ErrorMode = value;
-                RaisePropertyChanged("ErrorMode");
-            }
-        }
-        #endregion
-
-        #region 属性 RetryCount
-        private int _RetryCount = 0;
-        [XmlAttribute("RetryCount"), DefaultValue(0)]
-        public int RetryCount
-        {
-            get
-            {
-                return _RetryCount;
-            }
-            set
-            {
-                if (_RetryCount == value)
-                {
-                    return;
-                }
-                _RetryCount = value;
-                RaisePropertyChanged("RetryCount");
             }
         }
         #endregion
@@ -933,7 +965,7 @@ namespace AiCodo.Flow.Configs
             ResultParameters.ForEach(p => p.ConfigRoot = this.ConfigRoot);
         }
 
-        public virtual bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public virtual bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             actionResult = null;
             return false;
@@ -951,28 +983,25 @@ namespace AiCodo.Flow.Configs
                     var actionParameter = Parameters.FirstOrDefault(f => f.Name.Equals(p.Name, StringComparison.OrdinalIgnoreCase));
                     if (actionParameter != null)
                     {
-                        if (actionParameter.IsInherit || actionParameter.Expression.IsNullOrEmpty())
+                        if (actionParameter.IsInherit)
                         {
                             object defaultValue = p.DefaultValue;
                             pvalue = p.GetValue(defaultValue);
+                        }
+                        else if (actionParameter.Expression.IsNullOrEmpty())
+                        {
+                            pvalue = GetInputValue(flowArgs, p);
                         }
                         else
                         {
                             pvalue = p.GetValue(exp.Eval(actionParameter.Expression));
                         }
-                        args[p.Name] = pvalue;
                     }
                     else
                     {
-                        if (flowArgs.TryGetValue(p.Name, out object pv))
-                        {
-                            args[p.Name] = p.GetValue(pv);
-                        }
-                        else
-                        {
-                            args[p.Name] = p.GetValue(p.DefaultValue);
-                        }
+                        pvalue = GetInputValue(flowArgs, p);
                     }
+                    args[p.Name] = pvalue;
                 }
                 catch (Exception ex)
                 {
@@ -984,7 +1013,19 @@ namespace AiCodo.Flow.Configs
             return args;
         }
 
-        protected void CheckAssert(FunctionFlowItem flow, Interpreter exp)
+        private static object GetInputValue(Dictionary<string, object> flowArgs, ParameterItem p)
+        {
+            if (flowArgs.TryGetValue(p.Name, out object pv))
+            {
+                return p.GetValue(pv);
+            }
+            else
+            {
+                return p.GetValue(p.DefaultValue);
+            }
+        }
+
+        protected void CheckAssert(FunctionFlowConfig flow, Interpreter exp)
         {
             if (Asserts.Count > 0)
             {
@@ -1071,7 +1112,7 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             var exp = ExpressionHelper.GetInterpreter(flowArgs);
             actionResult = null;
@@ -1134,8 +1175,8 @@ namespace AiCodo.Flow.Configs
         #endregion 
 
         #region 属性 IsInherit
-        private bool _IsInherit = true;
-        [XmlAttribute("IsInherit"), DefaultValue(true)]
+        private bool _IsInherit = false;
+        [XmlAttribute("IsInherit"), DefaultValue(false)]
         public bool IsInherit
         {
             get

@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 namespace AiCodo.Wpf.Controls
-{ 
+{
     public class AiWindow : Window
     {
         const int TipSecond = 3;
@@ -20,27 +20,21 @@ namespace AiCodo.Wpf.Controls
         bool _IsTipChecking = false;
         object _TipCheckingLock = new object();
 
+        KeyGesture _EscapeKeyGesture = null;
+
         #region AIWindow
         static AiWindow()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(AiWindow), new FrameworkPropertyMetadata(typeof(AiWindow)));
         }
 
-        public AiWindow() : this(true)
-        {
-        }
-
-        public AiWindow(bool useEscapeClose)
+        public AiWindow()
         {
             this.DefaultStyleKey = typeof(AiWindow);
             this.CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, OnCloseWindow));
             this.CommandBindings.Add(new CommandBinding(SystemCommands.MaximizeWindowCommand, OnMaximizeWindow, OnCanResizeWindow));
             this.CommandBindings.Add(new CommandBinding(SystemCommands.MinimizeWindowCommand, OnMinimizeWindow, OnCanMinimizeWindow));
             this.CommandBindings.Add(new CommandBinding(SystemCommands.RestoreWindowCommand, OnRestoreWindow, OnCanResizeWindow));
-            if (useEscapeClose)
-            {
-                SystemCommands.CloseWindowCommand.InputGestures.Add(new KeyGesture(Key.Escape));
-            }
         }
 
         private void OnCanResizeWindow(object sender, CanExecuteRoutedEventArgs e)
@@ -71,6 +65,41 @@ namespace AiCodo.Wpf.Controls
         private void OnRestoreWindow(object target, ExecutedRoutedEventArgs e)
         {
             SystemCommands.RestoreWindow(this);
+        }
+        #endregion
+
+        #region EscapeCommand DependencyProperty
+        public RoutedCommand EscapeCommand
+        {
+            get { return (RoutedCommand)GetValue(EscapeCommandProperty); }
+            set { SetValue(EscapeCommandProperty, value); }
+        }
+        public static readonly DependencyProperty EscapeCommandProperty =
+                DependencyProperty.Register("EscapeCommand", typeof(RoutedCommand), typeof(AiWindow),
+                new PropertyMetadata(null, new PropertyChangedCallback(AiWindow.OnEscapeCommandPropertyChanged)));
+
+        private static void OnEscapeCommandPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            if (obj is AiWindow)
+            {
+                (obj as AiWindow).OnEscapeCommandValueChanged(e.OldValue);
+            }
+        }
+
+        protected void OnEscapeCommandValueChanged(object oldValue)
+        {
+            if (oldValue != null && oldValue is RoutedCommand oldCmd && _EscapeKeyGesture !=null)
+            {
+                oldCmd.InputGestures.Remove(_EscapeKeyGesture);
+            }
+            if(EscapeCommand!= null)
+            {
+                if (_EscapeKeyGesture == null)
+                {
+                    _EscapeKeyGesture = new KeyGesture(Key.Escape);
+                }
+                EscapeCommand.InputGestures.Add(_EscapeKeyGesture);
+            }
         }
         #endregion
 
@@ -213,6 +242,78 @@ namespace AiCodo.Wpf.Controls
         }
 
         protected void OnTopContentTemplateValueChanged()
+        {
+
+        }
+        #endregion
+
+        #region ShowLeftBar DependencyProperty
+        public bool ShowLeftBar
+        {
+            get { return (bool)GetValue(ShowLeftBarProperty); }
+            set { SetValue(ShowLeftBarProperty, value); }
+        }
+        public static readonly DependencyProperty ShowLeftBarProperty =
+                DependencyProperty.Register("ShowLeftBar", typeof(bool), typeof(AiWindow),
+                new PropertyMetadata(false, new PropertyChangedCallback(AiWindow.OnShowLeftBarPropertyChanged)));
+
+        private static void OnShowLeftBarPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            if (obj is AiWindow)
+            {
+                (obj as AiWindow).OnShowLeftBarValueChanged();
+            }
+        }
+
+        protected void OnShowLeftBarValueChanged()
+        {
+
+        }
+        #endregion
+
+        #region LeftBar DependencyProperty
+        public object LeftBar
+        {
+            get { return (object)GetValue(LeftBarProperty); }
+            set { SetValue(LeftBarProperty, value); }
+        }
+        public static readonly DependencyProperty LeftBarProperty =
+                DependencyProperty.Register("LeftBar", typeof(object), typeof(AiWindow),
+                new PropertyMetadata(null, new PropertyChangedCallback(AiWindow.OnLeftBarPropertyChanged)));
+
+        private static void OnLeftBarPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            if (obj is AiWindow)
+            {
+                (obj as AiWindow).OnLeftBarValueChanged();
+            }
+        }
+
+        protected void OnLeftBarValueChanged()
+        {
+
+        }
+        #endregion
+
+        #region LeftBarTempalte DependencyProperty
+        public DataTemplate LeftBarTempalte
+        {
+            get { return (DataTemplate)GetValue(LeftBarTempalteProperty); }
+            set { SetValue(LeftBarTempalteProperty, value); }
+        }
+        public static readonly DependencyProperty LeftBarTempalteProperty =
+                DependencyProperty.Register("LeftBarTempalte", typeof(DataTemplate), typeof(AiWindow),
+                new PropertyMetadata(null, new PropertyChangedCallback(AiWindow.OnLeftBarTempaltePropertyChanged)));
+
+        private static void OnLeftBarTempaltePropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            if (obj is AiWindow)
+            {
+                (obj as AiWindow).OnLeftBarTempalteValueChanged();
+            }
+        }
+
+        protected void OnLeftBarTempalteValueChanged()
         {
 
         }
@@ -411,6 +512,14 @@ namespace AiCodo.Wpf.Controls
             }
         }
     }
+
+    public enum EscapeKeyMode
+    {
+        None,
+        Close,
+        Minimize
+    }
+
     class TipItem
     {
         public object Message { get; set; }

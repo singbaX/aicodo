@@ -18,9 +18,28 @@ namespace AiCodo
             {"DirExists",new BoolDelegate(dir=>dir.IsDirectoryExists()) },
         };
 
+        static List<Type> _ReferenceTypes = new List<Type>();
+
         public static void SetFunction(string name, Delegate dg)
         {
             _DefaultFunctions[name] = dg;
+        }
+
+        public static void AddReferenceType(params Type[] types)
+        {
+            if (types != null)
+            {
+                lock (_ReferenceTypes)
+                {
+                    types.ForEach(t =>
+                    {
+                        if (!_ReferenceTypes.Contains(t))
+                        {
+                            _ReferenceTypes.Add(t);
+                        }
+                    });
+                }
+            }
         }
 
         public static Interpreter GetInterpreter(IEnumerable<KeyValuePair<string, object>> paras)
@@ -46,6 +65,10 @@ namespace AiCodo
 
             context.Reference(typeof(ObjectConverters));
             context.Reference(typeof(System.IO.Path));
+            foreach(var t in _ReferenceTypes)
+            {
+                context.Reference(t);
+            }
             return context;
         }
 
@@ -70,13 +93,13 @@ namespace AiCodo
             return result;
         }
 
-        public static TFunc CreateFunc<TFunc>(this string expression,params string[] names)
+        public static TFunc CreateFunc<TFunc>(this string expression, params string[] names)
         {
             var context = CreateInterpreter();
-            return context.ParseAsExpression<TFunc>(expression,names).Compile();
+            return context.ParseAsExpression<TFunc>(expression, names).Compile();
         }
 
-        public static string Format(string format,params object[] args)
+        public static string Format(string format, params object[] args)
         {
             return string.Format(format, args);
         }

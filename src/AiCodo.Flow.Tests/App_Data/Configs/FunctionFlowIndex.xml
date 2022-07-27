@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FlowIndex>
+	<Item ID="Ref001" Name="EditSystemParameters" DisplayName="修改系统参数"/>
+	<Item ID="F0001" Name="sys_user.insert" DisplayName="新增用户"/>
+</FlowIndex>

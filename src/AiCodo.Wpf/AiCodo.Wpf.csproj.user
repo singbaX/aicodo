@@ -8,6 +8,12 @@
     <Page Update="Themes\AiWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Themes\Buttons.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Themes\Colors.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Themes\DialogWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

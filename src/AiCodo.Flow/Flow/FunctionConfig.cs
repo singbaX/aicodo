@@ -29,15 +29,16 @@ namespace AiCodo.Flow.Configs
     {
         const string _ConfigFile = "FunctionConfig.xml";
 
-        public const string Type_Bool= "Bool";    
-        public const string Type_Int= "Int";     
-        public const string Type_Long= "Long";    
-        public const string Type_Single = "Single";  
-        public const string Type_Double  = "Double";  
-        public const string Type_String  = "String";  
+        public const string Type_Bool= "Bool";
+        public const string Type_Int= "Int";
+        public const string Type_Long= "Long";
+        public const string Type_Single = "Single";
+        public const string Type_Double  = "Double";
+        public const string Type_String  = "String";
+        public const string Type_DateTime  = "DateTime";
         public const string Type_FilePath= "FilePath";
-        public const string Type_Image   = "Image";   
-        public const string Type_Object  = "Object";  
+        public const string Type_Image   = "Image";
+        public const string Type_Object  = "Object";
         public const string Type_List    = "List";
 
         static readonly List<ParameterTypeDefine> _StaticTypes = new List<ParameterTypeDefine>
@@ -48,6 +49,7 @@ namespace AiCodo.Flow.Configs
             new ParameterTypeDefine { Name = "Single",  Type = ParameterType.Single },
             new ParameterTypeDefine { Name = "Double",  Type = ParameterType.Double },
             new ParameterTypeDefine { Name = "String",  Type = ParameterType.String },
+            new ParameterTypeDefine { Name = "DateTime",  Type = ParameterType.DateTime },
             new ParameterTypeDefine { Name = "FilePath",Type = ParameterType.FilePath },
             new ParameterTypeDefine { Name = "Image",   Type = ParameterType.Image },
             new ParameterTypeDefine { Name = "Object",  Type = ParameterType.Object },
@@ -61,33 +63,6 @@ namespace AiCodo.Flow.Configs
             var config = CreateOrLoad<FunctionConfig>(_ConfigFile);
             Current = config;
         }
-
-        #region 属性 ConfigFileName
-        private string _ConfigFileName = string.Empty;
-        [XmlIgnore]
-        public string ConfigFileName
-        {
-            get
-            {
-                if (_Current == null)
-                {
-                    lock (_LoadLock)
-                    {
-                        if (_Current == null)
-                        {
-                            Reload();
-                        }
-                    }
-                }
-                return _ConfigFileName;
-            }
-            set
-            {
-                _ConfigFileName = value;
-                RaisePropertyChanged("ConfigFileName");
-            }
-        }
-        #endregion
 
         #region 属性 Assemblies
         private CollectionBase<AssemblyItem> _Assemblies = null;
@@ -387,6 +362,16 @@ namespace AiCodo.Flow.Configs
         {
             get
             {
+                if(_Current == null)
+                {
+                    lock (_LoadLock)
+                    {
+                        if(_Current == null)
+                        { 
+                            _Current = CreateOrLoad<FunctionConfig>(_ConfigFile);
+                        }
+                    }
+                }
                 return _Current;
             }
             set
@@ -1123,6 +1108,7 @@ namespace AiCodo.Flow.Configs
         Single,
         Double,
         String,
+        DateTime,
         Object,
         List,
         Image,//图片路径
@@ -1292,7 +1278,7 @@ namespace AiCodo.Flow.Configs
         public ParameterType GetParameterTypeOfName(string typeName)
         {
             var type = ParameterType.None;
-            if (TypeName.IsNotEmpty() && ConfigRoot != null)
+            if (TypeName.IsNotEmpty())
             {
                 if (ConfigRoot is FunctionConfig config)
                 {
@@ -1369,6 +1355,8 @@ namespace AiCodo.Flow.Configs
                             return file;
                         }
                         return value.ToString();
+                    case ParameterType.DateTime:
+                        return value.ToDateTime();
                     case ParameterType.Option:
                     case ParameterType.String:
                     case ParameterType.Image:

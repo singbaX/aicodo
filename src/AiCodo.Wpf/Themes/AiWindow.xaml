@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:ai="clr-namespace:AiCodo.Wpf.Controls" >
 
+    <DataTemplate x:Key="AiWindowLeftBarTemplate">
+        
+    </DataTemplate>
+
     <Style x:Key="AiWindowStyle" TargetType="ai:AiWindow">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
@@ -33,46 +37,63 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
-                                        <Border Background="{TemplateBinding Background}" 
-                                                Grid.RowSpan="2"/>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                        <Border Background="{TemplateBinding HeaderBackground}" />
-
-                                        <StackPanel Orientation="Horizontal" Height="30" Margin="5,0,0,0">
-                                            <Image Source="{TemplateBinding Icon}" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{TemplateBinding Title}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-
-                                        <Grid x:Name="Top" HorizontalAlignment="Center" WindowChrome.IsHitTestVisibleInChrome="True">
-                                            <ContentControl Content="{TemplateBinding TopContent}"
-                                                            ContentTemplate="{TemplateBinding TopContentTemplate}"
-                                                            HorizontalAlignment="Stretch"
-                                                            VerticalAlignment="Stretch"
+                                        <Grid x:Name="LeftBar" Grid.RowSpan="2" Visibility="Collapsed">
+                                            <Border Background="#2e2e2e"/>
+                                            <ContentControl Content="{TemplateBinding LeftBar}"
+                                                            ContentTemplate="{TemplateBinding LeftBarTempalte}"
+                                                            HorizontalContentAlignment="Stretch"
+                                                            VerticalContentAlignment="Stretch"
                                                             SnapsToDevicePixels="True"/>
                                         </Grid>
-
-                                        <StackPanel x:Name="WindowTools" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True"
-                                                HorizontalAlignment="Right" VerticalAlignment="Top">
-                                            <Button x:Name="Minimize" Style="{DynamicResource SystemMinimizeButton}"/>
-                                            <Button x:Name="Maximize" Style="{DynamicResource SystemMaximizeButton}"/>
-                                            <Button x:Name="Restore" Style="{DynamicResource SystemRestoreButton}"/>
-                                            <Button x:Name="Close" Style="{DynamicResource SystemCloseButton}"/>
-                                        </StackPanel>
-
-                                        <Grid Grid.Row="1">
+                                        
+                                        <Grid Grid.Column="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Grid x:Name="Tool" Visibility="Collapsed">
-                                                <ContentControl Content="{TemplateBinding ToolContent}"
-                                                            ContentTemplate="{TemplateBinding ToolContentTemplate}"
+                                            <Border Grid.ColumnSpan="4" Background="{TemplateBinding HeaderBackground}" />
+
+                                            <StackPanel Orientation="Horizontal" Height="30" Margin="5,0,0,0">
+                                                <Image Source="{TemplateBinding Icon}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{TemplateBinding Title}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <Grid x:Name="Top" Grid.Column="1" HorizontalAlignment="Center" WindowChrome.IsHitTestVisibleInChrome="True">
+                                                <ContentControl Content="{TemplateBinding TopContent}"
+                                                            ContentTemplate="{TemplateBinding TopContentTemplate}"
                                                             HorizontalAlignment="Stretch"
                                                             VerticalAlignment="Stretch"
                                                             SnapsToDevicePixels="True"/>
                                             </Grid>
 
-                                            <ContentPresenter x:Name="MainContent" Grid.Column="1" 
+
+                                            <ContentControl x:Name="Tool" Grid.Column="2" Visibility="Collapsed"
+                                                            Content="{TemplateBinding ToolContent}"
+                                                            ContentTemplate="{TemplateBinding ToolContentTemplate}"
+                                                            HorizontalContentAlignment="Stretch"
+                                                            VerticalContentAlignment="Stretch"
+                                                            SnapsToDevicePixels="True"/>
+
+                                            <StackPanel x:Name="WindowTools" Grid.Column="3" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True"
+                                                HorizontalAlignment="Right">
+                                                <Button x:Name="Minimize" Style="{DynamicResource SystemButton_MinStyle}" Command="{x:Static SystemCommands.MinimizeWindowCommand}" />
+                                                <Button x:Name="Maximize" Style="{DynamicResource SystemButton_MaxStyle}" Command="{x:Static SystemCommands.MaximizeWindowCommand}"/>
+                                                <Button x:Name="Restore" Style="{DynamicResource SystemButton_RestoreStyle}" Command="{x:Static SystemCommands.RestoreWindowCommand}"/>
+                                                <Button x:Name="Close" Style="{DynamicResource SystemButton_CloseStyle}" Command="{x:Static SystemCommands.CloseWindowCommand}"/>
+                                            </StackPanel>
+
+                                        </Grid>
+
+                                        <Grid Grid.Column="1" Grid.Row="1" Background="White">
+                                            <Border Background="{TemplateBinding Background}"/>
+                                            <ContentPresenter x:Name="MainContent" Grid.Column="1"  
                                                         Content="{TemplateBinding Content}"
                                                         ContentTemplate="{TemplateBinding ContentTemplate}"
                                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -98,6 +119,12 @@
                         <Trigger Property="ShowCloseButton" Value="false">
                             <Setter TargetName="Close" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
+                        <Trigger Property="ShowLeftBar" Value="True">
+                            <Setter TargetName="LeftBar" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="ShowTool" Value="True">
+                            <Setter TargetName="Tool" Property="Visibility" Value="Visible"/>
+                        </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="WindowState" Value="Maximized"/>
@@ -115,9 +142,6 @@
                             <Setter TargetName="Maximize" Property="Visibility" Value="Visible" />
                             <Setter TargetName="Restore" Property="Visibility" Value="Collapsed" />
                         </MultiTrigger>
-                        <Trigger Property="ShowTool" Value="true">
-                            <Setter TargetName="Tool" Property="Visibility" Value="Visible"/>
-                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -132,7 +156,7 @@
     </Style>
 
     <Style TargetType="ai:AiWindow" BasedOn="{StaticResource AiWindowStyle}">
-        
+
     </Style>
 
 </ResourceDictionary>

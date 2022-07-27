@@ -32,15 +32,15 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 RefItems
-        private CollectionBase<FunctionFlowFileItem> _RefItems = null;
-        [XmlElement("RefItem", typeof(FunctionFlowFileItem))]
-        public CollectionBase<FunctionFlowFileItem> RefItems
+        private CollectionBase<FunctionFlowRefFileItem> _RefItems = null;
+        [XmlElement("RefItem", typeof(FunctionFlowRefFileItem))]
+        public CollectionBase<FunctionFlowRefFileItem> RefItems
         {
             get
             {
                 if (_RefItems == null)
                 {
-                    _RefItems = new CollectionBase<FunctionFlowFileItem>();
+                    _RefItems = new CollectionBase<FunctionFlowRefFileItem>();
                     _RefItems.CollectionChanged += RefItems_CollectionChanged;
                 }
                 return _RefItems;
@@ -78,7 +78,7 @@ namespace AiCodo.Flow.Configs
         }
         protected virtual void OnRefItemsAdded(IList newItems)
         {
-            foreach (FunctionFlowFileItem item in newItems)
+            foreach (FunctionFlowRefFileItem item in newItems)
             {
                 item.ConfigRoot = this;
             }
@@ -86,7 +86,7 @@ namespace AiCodo.Flow.Configs
 
         protected virtual void OnRefItemsRemoved(IList oldItems)
         {
-            foreach (FunctionFlowFileItem item in oldItems)
+            foreach (FunctionFlowRefFileItem item in oldItems)
             {
                 item.ConfigRoot = null;
             }
@@ -186,7 +186,44 @@ namespace AiCodo.Flow.Configs
         }
     }
 
-    public class FunctionFlowFileItem : ConfigItemBase
+    public class FunctionFlowFileItem : FunctionFlowFileItemBase
+    {
+        #region 属性 FlowConfig
+        private FunctionRefFlowConfig _FlowConfig = null;
+        [XmlIgnore,JsonIgnore]
+        public FunctionRefFlowConfig FlowConfig
+        {
+            get
+            {
+                if(_FlowConfig == null)
+                {
+                    _FlowConfig = FunctionRefFlowConfig.Load(ID);
+                }
+                return _FlowConfig;
+            }
+        }
+        #endregion
+    }
+    public class FunctionFlowRefFileItem : FunctionFlowFileItemBase
+    {
+        #region 属性 FlowConfig
+        private FunctionRefFlowConfig _FlowConfig = null;
+        [XmlIgnore,JsonIgnore]
+        public FunctionRefFlowConfig FlowConfig
+        {
+            get
+            {
+                if(_FlowConfig == null)
+                {
+                    _FlowConfig = FunctionRefFlowConfig.Load(ID);
+                }
+                return _FlowConfig;
+            }
+        }
+        #endregion
+    }
+
+    public class FunctionFlowFileItemBase : ConfigItemBase
     {
         #region 属性 ID
         private string _ID = string.Empty;
@@ -251,20 +288,5 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        #region 属性 FlowConfig
-        private FunctionFlowConfig _FlowConfig = null;
-        [XmlIgnore,JsonIgnore]
-        public FunctionFlowConfig FlowConfig
-        {
-            get
-            {
-                if(_FlowConfig == null)
-                {
-                    _FlowConfig = FunctionFlowConfig.Load(ID);
-                }
-                return _FlowConfig;
-            }
-        }
-        #endregion
     }
 }

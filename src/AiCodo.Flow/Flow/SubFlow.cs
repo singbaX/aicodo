@@ -125,7 +125,7 @@ namespace AiCodo.Flow.Configs
             }
         }
         #endregion
-        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             var exp = ExpressionHelper.GetInterpreter(flowArgs);
             actionResult = null;
@@ -146,7 +146,7 @@ namespace AiCodo.Flow.Configs
 
             try
             {
-                var result = subContext.ExecuteFlowActions(flow, Actions);
+                var result = subContext.ExecuteFlowActions(flow, Actions, out var args);
                 var functionResult = new FunctionResult();
                 ResetResult(functionResult, result);
                 actionResult = functionResult;
@@ -243,7 +243,7 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             var exp = ExpressionHelper.GetInterpreter(flowArgs);
             actionResult = null;
@@ -275,7 +275,7 @@ namespace AiCodo.Flow.Configs
                 var subContext = new FlowContext(flowArgs);
                 try
                 {
-                    var result = subContext.ExecuteFlowActions(flow, switchItem.Actions);
+                    var result = subContext.ExecuteFlowActions(flow, switchItem.Actions, out var args);
                     var functionResult = new FunctionResult();
                     ResetResult(functionResult, result);
                     actionResult = functionResult;
@@ -459,7 +459,7 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             var exp = ExpressionHelper.GetInterpreter(flowArgs);
             actionResult = null;
@@ -488,7 +488,7 @@ namespace AiCodo.Flow.Configs
                 {
                     subContext.SetArgs(itemName, source);
                     subContext.SetArgs(itemIndexName, index);
-                    var result = subContext.ExecuteFlowActions(flow, Actions);
+                    var result = subContext.ExecuteFlowActions(flow, Actions, out var args);
                     resultList.Add(result);
                     index++;
                 }
@@ -568,7 +568,7 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
-        public override bool TryRun(FunctionFlowItem flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
         {
             var exp = ExpressionHelper.GetInterpreter(flowArgs);
             actionResult = null;
@@ -598,7 +598,7 @@ namespace AiCodo.Flow.Configs
             while (Loop.Eval(subFlowArgs).ToBoolean())
             {
                 subContext.SetArgs(indexName, index);
-                var result = subContext.ExecuteFlowActions(flow, Actions);
+                var result = subContext.ExecuteFlowActions(flow, Actions, out var args);
                 resultList.Add(result);
                 if (SleepSecond > 0)
                 {

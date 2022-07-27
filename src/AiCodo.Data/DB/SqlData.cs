@@ -1158,6 +1158,27 @@ namespace AiCodo.Data
         }
         #endregion
 
+        #region 属性 DisplayName
+        private string _DisplayName = string.Empty;
+        [XmlAttribute("DisplayName"), DefaultValue("")]
+        public string DisplayName
+        {
+            get
+            {
+                return _DisplayName;
+            }
+            set
+            {
+                if (_DisplayName == value)
+                {
+                    return;
+                }
+                _DisplayName = value;
+                RaisePropertyChanged("DisplayName");
+            }
+        }
+        #endregion
+
         #region 属性 IsShared
         [XmlIgnore()]
         public bool IsShared
