@@ -1,5 +1,10 @@
 # aicodo
 很抱歉，没有写更多的例子来介绍这套代码（项目）库，正在努力中...
+
+# 代码地址
+https://gitee.com/singba/aicodo
+https://github.com/singbaX/aicodo
+
 # mysql使用场景
 如果您想要建立一个基于Mysql数据库的后台系统，下面使用AiCodo的方案步骤
 
