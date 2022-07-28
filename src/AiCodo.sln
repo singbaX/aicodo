@@ -41,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.Cmds", "AiCodo.Cmds\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.Flow", "AiCodo.Flow\AiCodo.Flow.csproj", "{CCC340E9-4F05-4E6D-ABC2-9013E91F1408}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiCodo.Flow.Tests", "AiCodo.Flow.Tests\AiCodo.Flow.Tests.csproj", "{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.Flow.Tests", "AiCodo.Flow.Tests\AiCodo.Flow.Tests.csproj", "{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,8 +110,8 @@ Global
 		{CCC340E9-4F05-4E6D-ABC2-9013E91F1408} = {80838BCB-A030-4E79-9222-99B78F79CE97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		VisualSVNWorkingCopyRoot = .
 		SolutionGuid = {3596AF08-C083-4973-BE36-999B498E0768}
+		VisualSVNWorkingCopyRoot = .
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		AiCodo.Shared\AiCodo.Shared.projitems*{7137d73f-900a-4ef0-aab7-64b7fc6e4d5e}*SharedItemsImports = 13
