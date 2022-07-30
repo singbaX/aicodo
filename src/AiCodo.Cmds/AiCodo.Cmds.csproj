@@ -9,12 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AiCodo" Version="1.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AiCodo.Codes\AiCodo.Codes.csproj" />
-    <ProjectReference Include="..\AiCodo.Data.MySql\AiCodo.Data.MySql.csproj" />
+    <PackageReference Include="AiCodo" Version="1.0.11.1" />
+    <PackageReference Include="AiCodo.Codes" Version="1.0.7" />
+    <PackageReference Include="AiCodo.Data" Version="1.0.7" />
+    <PackageReference Include="AiCodo.Data.MySql" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

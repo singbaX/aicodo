@@ -11,6 +11,8 @@ using System.Text;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+var error = "";
+
 Console.WriteLine(@"AiCode命令行执行模式，支持以下命令：");
 Console.WriteLine(@"刷新表：reloadtables");
 Console.WriteLine(@"生成代码：codetable sys_user entity User.cs");
@@ -46,6 +48,8 @@ CodeSetting.Current.Templates.ForEach(t =>
     Console.WriteLine($"[{t.Name}] - [{t.FileName}]");
 });
 
+methods.Add("showerror", (arr) => Console.WriteLine(error));
+
 var line = "";
 while (true)
 {
@@ -71,7 +75,17 @@ while (true)
         }
         catch (Exception ex)
         {
-            "Program".Log($"执行命令错误：{ex.ToString()}");
+            "Program".Log($"执行命令错误：{ex.Message}");
+            error = ex.ToString();
+            var errIndex = error.IndexOf("error: (");
+            if (errIndex > 0)
+            {
+                var endIndex = error.IndexOfAny(new char[] { '\r', '\n' }, errIndex + 1);
+                if(endIndex > 0)
+                {
+                    "Program".Log($"执行命令错误：{error.Substring(errIndex,endIndex-errIndex)}");
+                }
+            }
         }
     }
     else
