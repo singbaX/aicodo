@@ -1,5 +1,6 @@
 # aicodo
 很抱歉，没有写更多的例子来介绍这套代码（项目）库，正在努力中...
+QQ群：883134025
 
 # 代码地址
 https://gitee.com/singba/aicodo
