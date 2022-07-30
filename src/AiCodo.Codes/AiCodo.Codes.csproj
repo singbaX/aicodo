@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<PackageId>AiCodo.Codes</PackageId>
-		<Version>1.0.9</Version>
+		<Version>1.0.12.0</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
 	</PropertyGroup>
