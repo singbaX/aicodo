@@ -61,7 +61,7 @@ namespace AiCodo.Flow.Configs
             }
         }
 
-        public Task<DynamicEntity> ExecuteFlow(FunctionFlowConfig flow)
+        public virtual Task<DynamicEntity> ExecuteFlow(FunctionFlowConfig flow)
         {
             FlowID = flow.ID;
             FlowName = flow.Name;
@@ -88,7 +88,7 @@ namespace AiCodo.Flow.Configs
             });
         }
 
-        private DynamicEntity RunActions(FunctionFlowConfig flow)
+        protected virtual DynamicEntity RunActions(FunctionFlowConfig flow)
         {
             var actions = flow.GetActions().ToList();
             var data = ExecuteFlowActions(flow, actions, out var flowArgs);
@@ -118,7 +118,7 @@ namespace AiCodo.Flow.Configs
             return data;
         }
 
-        internal DynamicEntity ExecuteFlowActions(FunctionFlowConfig flow, IEnumerable<FlowActionBase> actions, out Dictionary<string, object> flowArgs)
+        public DynamicEntity ExecuteFlowActions(FunctionFlowConfig flow, IEnumerable<FlowActionBase> actions, out Dictionary<string, object> flowArgs)
         {
             var result = new DynamicEntity();
             var errorCode = "";
