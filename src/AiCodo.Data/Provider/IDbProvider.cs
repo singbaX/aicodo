@@ -68,5 +68,11 @@ namespace AiCodo.Data
         string CreateSelectByKeys(TableSchema table);
 
         string CreateView(string name, string select, bool reset = true);
+
+        string CreateInsert(TableSchema table, string[] columns);
+
+        string CreateUpdate(TableSchema table, string[] columns);
+
+        string CreateSelect(TableSchema table, string[] columns, string where = "");
     }
 }

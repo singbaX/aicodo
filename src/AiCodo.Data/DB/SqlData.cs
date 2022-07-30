@@ -467,11 +467,22 @@ namespace AiCodo.Data
                     CheckSqlItem(table, "SelectAll", SqlType.Query, "全选", () => provider.CreateSelect(t));
                     CheckSqlItem(table, "SelectByKeys", SqlType.Query, "主键选择", () => provider.CreateSelectByKeys(t));
 
+                    if (t.Columns.FirstOrDefault(f => f.Name.Equals("IsValid")) != null)
+                    {
+                        CheckSqlItem(table, "SetValid", SqlType.Execute, "有效", () => CreateValid(provider, t));
+                    }
                     CheckSqlItem(table, "Count", SqlType.Scalar, "记录数", () => provider.CreateCount(t));
                 }
             }
 
         }
+
+        private string CreateValid(IDbProvider provider, TableSchema t)
+        {
+            return provider.CreateUpdate(t, new string[] { "IsValid" });
+        }
+
+        //private static string CreateInvalid(TableSchema table)
 
         private static void CheckSqlItem(SqlTableGroup table, string sqlname, SqlType sqlType, string description, Func<string> create)
         {
@@ -1432,7 +1443,7 @@ namespace AiCodo.Data
 
         #region 属性 AccessLimit
         private AccessLimit _AccessLimit = AccessLimit.None;
-        [XmlAttribute("AccessLimit"), DefaultValue(typeof(AccessLimit),"None")]
+        [XmlAttribute("AccessLimit"), DefaultValue(typeof(AccessLimit), "None")]
         public AccessLimit AccessLimit
         {
             get

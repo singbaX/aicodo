@@ -343,6 +343,69 @@ namespace AiCodo.Data
             table.Columns.Where(c => c.IsKey).ForEachWithFirst((c) => { sb.AppendFormat("{0}={1}", GetName(c.Name), GetParameter(c.Name)); }, (c) => { sb.AppendFormat(" AND {0}={1}", GetName(c.Name), GetParameter(c.Name)); });
             return sb.ToString();
         }
+
+        public virtual string CreateInsert(TableSchema table, string[] columns)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("INSERT INTO {0}\r\n(", GetName(table.Name));
+            var insertColumns = table.Columns.Where(c => !c.IsAutoIncrement
+                && columns.FirstOrDefault(f => f.Equals(c.Name, StringComparison.OrdinalIgnoreCase)) != null)
+                .Select(s => s.Name);
+            AppendNames(sb, insertColumns);
+            sb.Append(")");
+            sb.Append("\r\nVALUES(");
+            AppendParameters(sb, insertColumns);
+            sb.Append(");");
+             
+            //如果有自增列且自增列是主键（Mysql肯定是主键），直接根据最后新增自增列来取
+            var autoColumn = table.GetAutoIncrementColumn();
+            if (autoColumn != null)
+            { 
+                string select = string.Format("SELECT {0} AS {1};", GetLastIdentity(table.Name, autoColumn.Name), GetName(autoColumn.Name));
+                sb.Append(select); 
+            } 
+            return sb.ToString();
+        }
+
+        public virtual string CreateUpdate(TableSchema table, string[] columns)
+        {
+            var updateColumns = table.Columns.Where(c => c.IsKey == false
+                && columns.FirstOrDefault(f => f.Equals(c.Name, StringComparison.OrdinalIgnoreCase)) != null);
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("UPDATE {0} SET \r\n", GetName(table.Name));
+            updateColumns.Where(c => !c.IsKey).ForEachWithFirst(
+                (c) => { sb.AppendFormat("{0}={1}\r\n", GetName(c.Name), GetParameter(c.Name)); },
+                (c) => { sb.AppendFormat(",{0}={1}\r\n", GetName(c.Name), GetParameter(c.Name)); });
+            sb.Append(" WHERE ");
+            updateColumns.Where(c => c.IsKey).ForEachWithFirst(
+                (c) => { sb.AppendFormat("{0}={1}", GetName(c.Name), GetParameter(c.Name)); },
+                (c) => { sb.AppendFormat(" AND {0}={1}", GetName(c.Name), GetParameter(c.Name)); });
+            return sb.ToString();
+        }
+
+        public virtual string CreateSelect(TableSchema table, string[] columns, string where = "")
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT ");
+            table.Columns
+                .Where(c=>columns.FirstOrDefault(f=>f.Equals(c.Name, StringComparison.OrdinalIgnoreCase))!=null)
+                .ForEachWithFirst((c) => { sb.AppendFormat("{0}", GetName(c.Name)); }, (c) => { sb.AppendFormat(",{0}", GetName(c.Name)); });
+            sb.AppendFormat("\r\nFROM {0} ", GetName(table.Name));
+            if (where.IsNotEmpty())
+            {
+                where = where.Trim();
+                if (where.StartsWith("where ", StringComparison.OrdinalIgnoreCase))
+                {
+                    sb.Append($"\r\n{where}");
+                }
+                else
+                {
+                    sb.Append($"\r\nWHERE {where}");
+                }
+            }
+            return sb.ToString();
+        }
     }
     #endregion
 
