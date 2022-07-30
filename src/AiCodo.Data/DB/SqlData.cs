@@ -1424,6 +1424,27 @@ namespace AiCodo.Data
         }
         #endregion
 
+        #region 属性 IsQueryOnly
+        private bool _IsQueryOnly = true;
+        [XmlAttribute("IsQueryOnly"), DefaultValue(true)]
+        public bool IsQueryOnly
+        {
+            get
+            {
+                return _IsQueryOnly;
+            }
+            set
+            {
+                if (_IsQueryOnly == value)
+                {
+                    return;
+                }
+                _IsQueryOnly = value;
+                RaisePropertyChanged("IsQueryOnly");
+            }
+        }
+        #endregion
+
         #region 属性 FunctionType
         private FunctionType _FunctionType = FunctionType.All;
         [XmlAttribute("FunctionType"), DefaultValue(typeof(FunctionType), "All")]
