@@ -21,6 +21,12 @@ namespace AiCodo.Flow.Configs
         {
             #region 准备参数
             var args = new Dictionary<string, object>();
+            if(flowArgs.TryGetValue(FlowContext.RootArgsName,out var rootArgs))
+            {
+                args.Add(FlowContext.RootArgsName, rootArgs);
+            }
+            args.Add(FlowContext.ParentArgsName, flowArgs);
+
             foreach (var p in Parameters)
             {
                 object pvalue = null;

@@ -14,6 +14,9 @@ namespace AiCodo.Flow.Configs
     using System.Threading.Tasks;
     public class FlowContext
     {
+        public const string RootArgsName = "_RootArgs";
+        public const string ParentArgsName = "_ParentArgs";
+
         private Dictionary<string, object> _Args { get; set; } = new Dictionary<string, object>();
 
         private Dictionary<string, object> _Results { get; set; } = new Dictionary<string, object>();
@@ -125,6 +128,8 @@ namespace AiCodo.Flow.Configs
             var errorMessage = "";
             flowArgs = CreateFlowArgs(flow);
 
+            flowArgs[RootArgsName] = flowArgs;
+            flowArgs[ParentArgsName] = null;
             flowArgs["HasError"] = false;
             try
             {
