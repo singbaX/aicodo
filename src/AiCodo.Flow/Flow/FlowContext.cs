@@ -67,34 +67,55 @@ namespace AiCodo.Flow.Configs
             FlowName = flow.Name;
 
             return Task.Run(() =>
-            {                
-                var actions = flow.GetActions().ToList();
-                var data = ExecuteFlowActions(flow, actions, out var flowArgs);
-                if (flow.Results.Count > 0)
+            { 
+                if (flow.LockMode == LockMode.Current)
                 {
-                    var exp = ExpressionHelper.GetInterpreter(flowArgs);
-                    foreach (var r in flow.Results)
+                    lock (flow)
                     {
-                        object value = null;
-                        if (r.Expression.IsNullOrEmpty())
+                        return RunActions(flow);
+                    }
+                }
+
+                if (flow.LockMode == LockMode.Global && flow.LockID.IsNotEmpty())
+                {
+                    lock (Locks.GetLock(flow.LockID))
+                    {
+                        return RunActions(flow);
+                    }
+                }
+                
+                return RunActions(flow);
+            });
+        }
+
+        private DynamicEntity RunActions(FunctionFlowConfig flow)
+        {
+            var actions = flow.GetActions().ToList();
+            var data = ExecuteFlowActions(flow, actions, out var flowArgs);
+            if (flow.Results.Count > 0)
+            {
+                var exp = ExpressionHelper.GetInterpreter(flowArgs);
+                foreach (var r in flow.Results)
+                {
+                    object value = null;
+                    if (r.Expression.IsNullOrEmpty())
+                    {
+                        if (flowArgs.TryGetValue(r.Name, out value))
                         {
-                            if(flowArgs.TryGetValue(r.Name,out value))
-                            {
-                            }
-                            else
-                            {
-                                continue;
-                            }
                         }
                         else
                         {
-                            value = exp.Eval(r.Expression);
+                            continue;
                         }
-                        data.SetValue(r.Name, value);
                     }
+                    else
+                    {
+                        value = exp.Eval(r.Expression);
+                    }
+                    data.SetValue(r.Name, value);
                 }
-                return data;
-            });
+            }
+            return data;
         }
 
         internal DynamicEntity ExecuteFlowActions(FunctionFlowConfig flow, IEnumerable<FlowActionBase> actions, out Dictionary<string, object> flowArgs)

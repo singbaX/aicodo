@@ -978,7 +978,7 @@ namespace AiCodo.Flow.Configs
                         if (actionParameter.IsInherit)
                         {
                             object defaultValue = p.DefaultValue;
-                            pvalue = p.GetValue(defaultValue);
+                            pvalue = defaultValue;
                         }
                         else if (actionParameter.Expression.IsNullOrEmpty())
                         {
@@ -986,14 +986,14 @@ namespace AiCodo.Flow.Configs
                         }
                         else
                         {
-                            pvalue = p.GetValue(exp.Eval(actionParameter.Expression));
+                            pvalue = exp.Eval(actionParameter.Expression);
                         }
                     }
                     else
                     {
                         pvalue = GetInputValue(flowArgs, p);
                     }
-                    args[p.Name] = pvalue;
+                    args[p.Name] = p.GetValue(pvalue);
                 }
                 catch (Exception ex)
                 {
