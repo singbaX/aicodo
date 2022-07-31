@@ -25,6 +25,10 @@ namespace AiCodo.Flow.Configs
             {
                 args.Add(FlowContext.RootArgsName, rootArgs);
             }
+            if(flowArgs.TryGetValue(FlowContext.RootContextArgName, out var rootContext))
+            {
+                args.Add(FlowContext.RootContextArgName, rootContext);
+            }
             args.Add(FlowContext.ParentArgsName, flowArgs);
 
             foreach (var p in Parameters)
