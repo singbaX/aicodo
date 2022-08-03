@@ -49,6 +49,11 @@ namespace AiCodo.Flow.Configs
             return this;
         }
 
+        public bool TryGetArg(string name,out object value)
+        {
+            return _Args.TryGetValue(name, out value);
+        }
+
         public IEnumerable<KeyValuePair<string, object>> GetArgs()
         {
             foreach (var item in _Args)

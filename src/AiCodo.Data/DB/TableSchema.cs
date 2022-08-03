@@ -13,7 +13,7 @@ using System.Xml.Serialization;
 
 namespace AiCodo.Data
 {
-    public class TableSchema : Entity
+    public class TableSchema : TagEntity
     {
         #region 属性 Name
         [XmlAttribute("Name")]

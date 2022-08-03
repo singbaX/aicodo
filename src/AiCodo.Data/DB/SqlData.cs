@@ -1147,7 +1147,7 @@ namespace AiCodo.Data
         }
     }
 
-    public partial class SqlItem : EntityBase
+    public partial class SqlItem : TagItemBase
     {
         #region 属性 Name
         private string _Name = string.Empty;
@@ -1702,6 +1702,7 @@ namespace AiCodo.Data
             }
         }
     }
+
 
     [Flags]
     public enum FunctionType

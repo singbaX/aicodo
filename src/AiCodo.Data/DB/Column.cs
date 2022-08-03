@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 
 namespace AiCodo.Data
 {
-    public class Column : Entity
+    public class Column : TagEntity
     {
         public static string[] DBFields = new string[]
         {

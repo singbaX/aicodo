@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AiCodo" Version="1.0.11.1" />
+    <PackageReference Include="AiCodo" Version="1.0.12" />
     <PackageReference Include="AiCodo.Codes" Version="1.0.7" />
-    <PackageReference Include="AiCodo.Data" Version="1.0.7" />
+    <PackageReference Include="AiCodo.Data" Version="1.0.12.1" />
     <PackageReference Include="AiCodo.Data.MySql" Version="1.0.1" />
   </ItemGroup>
 
