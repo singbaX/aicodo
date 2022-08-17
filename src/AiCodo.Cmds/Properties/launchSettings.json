@@ -2,7 +2,7 @@
   "profiles": {
     "AiCodo.Cmds": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\xxj\\singba\\code\\AiCodo.Tools\\AiCodo.Cmds\\Configs\""
+      "commandLineArgs": "\"C:\\xxj\\git\\netserver\\tools\\code\\Configs\" \"C:\\xxj\\git\\netserver\\tools\\code\\codes\""
     }
   }
 }

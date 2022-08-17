@@ -22,6 +22,7 @@ namespace AiCodo.Cmds
             {"code",(args)=>CreateCodeOfConfig(args[0],args[1]) },
             {"codetable",(args)=>CreateCodeOfTable(args[0],args[1],args[2]) },
             {"codesql",(args)=>CreateCodeOfSqlTable(args[0],args[1],args[2]) },
+            {"codecmd",RunCmd},
         };
 
         static CodeCommands()
@@ -55,6 +56,18 @@ namespace AiCodo.Cmds
                     Console.WriteLine($"\t[{t.Name}]-[{t.DisplayName}]");
                 });
             });
+        }
+
+        public static void RunCmd(params string[] args)
+        {
+            if(args.Length == 0) return;
+            var cmdName = args[0];
+            var cmdArgs = new DynamicEntity();
+            for (int i = 1; i < args.Length-1; i+=2)
+            {
+                cmdArgs.Add(args[i], args[i + 1]);
+            }
+            Codes.CodeService.TryExecuteCommand(cmdName, cmdArgs);
         }
 
         private static void CreateCodeOfConfig(string templateName, string fileName)

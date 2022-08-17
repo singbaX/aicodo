@@ -17,40 +17,6 @@ namespace AiCodo.Flow.Configs
 {
     public abstract class SubFlowActionBase : FlowActionBase
     {
-        protected Dictionary<string, object> CreateSubFlowArgs(Dictionary<string, object> flowArgs, Interpreter exp)
-        {
-            #region 准备参数
-            var args = new Dictionary<string, object>();
-            if(flowArgs.TryGetValue(FlowContext.RootArgsName,out var rootArgs))
-            {
-                args.Add(FlowContext.RootArgsName, rootArgs);
-            }
-            if(flowArgs.TryGetValue(FlowContext.RootContextArgName, out var rootContext))
-            {
-                args.Add(FlowContext.RootContextArgName, rootContext);
-            }
-            args.Add(FlowContext.ParentArgsName, flowArgs);
-
-            foreach (var p in Parameters)
-            {
-                object pvalue = null;
-                if (p.IsInherit || p.Expression.IsNullOrEmpty())
-                {
-                    if (flowArgs.TryGetValue(p.Name, out object fvalue))
-                    {
-                        pvalue = p.GetValue(fvalue);
-                    }
-                }
-                else
-                {
-                    pvalue = p.GetValue(exp.Eval(p.Expression));
-                }
-                args[p.Name] = pvalue;
-            }
-            #endregion
-            return args;
-        }
-
         protected void ResetResult(FunctionResult result, DynamicEntity data)
         {
             data.ForEach(p =>
@@ -65,6 +31,7 @@ namespace AiCodo.Flow.Configs
         #region 属性 Actions
         private CollectionBase<FlowActionBase> _Actions = null;
         [XmlElement("Action", typeof(FunctionFlowAction))]
+        [XmlElement("Setter", typeof(SetterAction))]
         [XmlElement("Flow", typeof(SubFlowAction))]
         [XmlElement("Switch", typeof(SwitchAction))]
         [XmlElement("ForEach", typeof(ForEachAction))]
@@ -316,6 +283,7 @@ namespace AiCodo.Flow.Configs
         #region 属性 Actions
         private CollectionBase<FlowActionBase> _Actions = null;
         [XmlElement("Action", typeof(FunctionFlowAction))]
+        [XmlElement("Setter", typeof(SetterAction))]
         [XmlElement("Flow", typeof(SubFlowAction))]
         [XmlElement("Switch", typeof(SwitchAction))]
         [XmlElement("ForEach", typeof(ForEachAction))]
@@ -615,4 +583,110 @@ namespace AiCodo.Flow.Configs
             return true;
         }
     }
+
+    #region SetterAction
+    public class SetterAction : FlowActionBase
+    {
+        #region 属性 SourceObject
+        private string _SourceObject = string.Empty;
+        [XmlAttribute("SourceObject"), DefaultValue("")]
+        public string SourceObject
+        {
+            get
+            {
+                return _SourceObject;
+            }
+            set
+            {
+                if (_SourceObject == value)
+                {
+                    return;
+                }
+                _SourceObject = value;
+                RaisePropertyChanged("SourceObject");
+            }
+        }
+        #endregion
+
+        #region 属性 CreateNew
+        private bool _CreateNew = false;
+        [XmlAttribute("CreateNew"), DefaultValue(false)]
+        public bool CreateNew
+        {
+            get
+            {
+                return _CreateNew;
+            }
+            set
+            {
+                if (_CreateNew == value)
+                {
+                    return;
+                }
+                _CreateNew = value;
+                RaisePropertyChanged("CreateNew");
+            }
+        }
+        #endregion
+
+        public override bool TryRun(FunctionFlowConfig flow, Dictionary<string, object> flowArgs, out IFunctionResult actionResult)
+        {
+            actionResult = null;
+            if (SourceObject.IsNullOrEmpty() && CreateNew == false)
+            {
+                actionResult = new FunctionResult { ErrorCode = FunctionResult.FlowConfigError, ErrorMessage = "SourceObject没有配置" };
+                return false;
+            }
+
+            var exp = ExpressionHelper.GetInterpreter(flowArgs);
+
+            CheckWait(flowArgs);
+            if (Condition.IsNotEmpty())
+            {
+                if (exp.Eval(Condition).ToBoolean())
+                {
+                    this.Log($"{Name} 不满足执行条件，执行跳过");
+                    return false;
+                }
+            }
+
+            CheckAssert(flow, exp);
+            var obj = exp.Eval(SourceObject);
+            if (obj == null && CreateNew == false)
+            {
+                actionResult = new FunctionResult { ErrorCode = FunctionResult.FlowConfigError, ErrorMessage = "SourceObject值为null" };
+                return false;
+            }
+            if (CreateNew)
+            {
+                obj = obj == null ? new DynamicEntity() : obj.ToDynamicJson();
+            }
+
+            Dictionary<string, object> args = CreateSubFlowArgs(flowArgs, exp);
+            try
+            {
+                if (obj is IEntity t)
+                {
+                    args.ForEach(item =>
+                    {
+                        t.SetValue(item.Key, item.Value);
+                    });
+                }
+                else
+                {
+                    args.ForEach(item =>
+                    {
+                        obj.SetPathValue(item.Key, item.Value);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.WriteErrorLog();
+                actionResult = new FunctionResult { ErrorCode = FunctionResult.UnknowError, ErrorMessage = ex.Message };
+            }
+            return true;
+        }
+    }
+    #endregion
 }

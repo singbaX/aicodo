@@ -5,6 +5,7 @@
 // 您可以私用、商用部分或全部代码，修改源码时，请保持原代码的完整性，以免因为版本升级导致问题。
 namespace AiCodo
 {
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -249,8 +250,9 @@ namespace AiCodo
         /// <returns></returns>
         public static decimal ToDecimal(this object s)
         {
-            return Convert.ToDecimal(s);
+            return s == null ? 0 : (s is decimal) ? (decimal)s : Convert.ToDecimal(s);
         }
+
         public static decimal ToDecimalWithDefault(this object s, decimal defaultvalue)
         {
             decimal d = 0;
@@ -266,7 +268,7 @@ namespace AiCodo
 
         public static double ToDouble(this object s)
         {
-            return Convert.ToDouble(s);
+            return s == null ? 0 : (s is double) ? (double)s : Convert.ToDouble(s);
         }
 
         public static double ToDoubleWithDefault(this object s, double defaultvalue)
@@ -306,6 +308,23 @@ namespace AiCodo
                 return (Int32)s;
             }
             return Convert.ToInt32(s);
+        }
+
+        public static UInt32 ToUInt32(this object s)
+        {
+            if (s == null)
+            {
+                return 0;
+            } 
+            return Convert.ToUInt32(s);
+        }
+        public static UInt64 ToUInt64(this object s)
+        {
+            if (s == null)
+            {
+                return 0;
+            } 
+            return Convert.ToUInt64(s);
         }
 
         public static Int32 ToInt32WithDefault(this object s, Int32 defaultvalue)

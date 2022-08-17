@@ -36,6 +36,7 @@ namespace AiCodo.Codes
             {"codesqlall",CreateSqlAllFile },
             {"codeconn",CreateConnFile },
             {"export",ExportXlsx },
+            {"xslt",XsltService.RunCmd },
         };
 
         static CodeService()

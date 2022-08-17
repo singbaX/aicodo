@@ -7,34 +7,49 @@ using AiCodo;
 using AiCodo.Cmds;
 using AiCodo.Codes;
 using AiCodo.Data;
+using System.Diagnostics;
 using System.Text;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var error = "";
 
-Console.WriteLine(@"AiCode命令行执行模式，支持以下命令：");
+Console.WriteLine(@"AiCodo命令行执行模式，支持以下命令：");
 Console.WriteLine(@"刷新表：reloadtables");
 Console.WriteLine(@"生成代码：codetable sys_user entity User.cs");
 Console.WriteLine(@"生成代码：codesql sys_user entity User.cs");
-Console.WriteLine(@"任何问题，请联系作者，邮件singba@163.com");
+Console.WriteLine(@"开始直接支持CodeService的命令，命令codecmd
+导出excel表结构：codecmd export filename schema.xlsx 
+用xslt样式转换xml：codecmd xslt xmlfile a.xml xsltfile x.xslt filename newfile.xx
+
+为了方便调用其它命令，可以直接运行本目录下其它命令
+");
 
 if (args != null && args.Length > 0)
 {
-    var configRoot = args[0];
+    var configRoot = args[0].FixedAppBasePath();
     if (System.IO.Directory.Exists(configRoot))
     {
         "Program".Log($"加载文件夹[{args[0]}]");
         ApplicationConfig.LocalConfigFolder = configRoot;
     }
-    else
+
+    if (args.Length > 1 && args[1].IsNotEmpty())
     {
+        var codeRoot = args[1].FixedAppBasePath();
+        if (!System.IO.Directory.Exists(codeRoot))
+        {
+            System.IO.Directory.CreateDirectory(codeRoot);
+        }
+        CodeService.CodeRoot = codeRoot;
     }
 }
 else
 {
     ApplicationConfig.LocalConfigFolder = "configs".FixedAppBasePath();
 }
+Console.WriteLine($"配置路径：{ApplicationConfig.LocalConfigFolder}");
+Console.WriteLine($"代码路径：{CodeService.CodeRoot}");
 
 //AiCodo:Set db provider
 DbProviderFactories.SetFactory("mysql", MySqlProvider.Instance);
@@ -81,16 +96,43 @@ while (true)
             if (errIndex > 0)
             {
                 var endIndex = error.IndexOfAny(new char[] { '\r', '\n' }, errIndex + 1);
-                if(endIndex > 0)
+                if (endIndex > 0)
                 {
-                    "Program".Log($"执行命令错误：{error.Substring(errIndex,endIndex-errIndex)}");
+                    "Program".Log($"执行命令错误：{error.Substring(errIndex, endIndex - errIndex)}");
                 }
             }
         }
     }
     else
     {
-        Console.WriteLine($"无效的命令：{name}");
+        try
+        {
+            RunCommand(line, out string result);
+            Console.WriteLine(line);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Console.WriteLine($"无效的命令：{name}");
+        }
     }
+}
+
+
+static void RunCommand(string commandLine, out string result)
+{
+    Process cmd = new Process();
+    cmd.StartInfo.WorkingDirectory = ApplicationConfig.BaseDirectory;
+    cmd.StartInfo.FileName = "cmd.exe";
+    cmd.StartInfo.RedirectStandardInput = true;
+    cmd.StartInfo.RedirectStandardOutput = true;
+    cmd.StartInfo.CreateNoWindow = true;
+    cmd.StartInfo.UseShellExecute = false;
+    cmd.Start();
+
+    cmd.StandardInput.WriteLine(commandLine);
+    cmd.StandardInput.Flush();
+    result = cmd.StandardOutput.ReadToEnd();
+    cmd.StandardInput.Close();
 }
 

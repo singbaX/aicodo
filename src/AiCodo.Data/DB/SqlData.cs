@@ -465,7 +465,7 @@ namespace AiCodo.Data
                     CheckSqlItem(table, "Delete", SqlType.Execute, "删除", () => provider.CreateDelete(t));
                     CheckSqlItem(table, "Update", SqlType.Execute, "更新", () => provider.CreateUpdate(t));
                     CheckSqlItem(table, "SelectAll", SqlType.Query, "全选", () => provider.CreateSelect(t));
-                    CheckSqlItem(table, "SelectByKeys", SqlType.Query, "主键选择", () => provider.CreateSelectByKeys(t));
+                    CheckSqlItem(table, "SelectByKeys", SqlType.QueryOne, "主键选择", () => provider.CreateSelectByKeys(t));
 
                     if (t.Columns.FirstOrDefault(f => f.Name.Equals("IsValid")) != null)
                     {

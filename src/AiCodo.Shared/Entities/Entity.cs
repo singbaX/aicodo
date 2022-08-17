@@ -75,33 +75,16 @@ double*/
 
         static EntityExtends()
         {
-            AddConverter(typeof(bool),
-                         value => value == null ? false :
-                            ((value is bool) ? (bool)value : (value is int) ? ((int)value > 0) : Convert.ToBoolean(value)));
-            AddConverter(typeof(decimal),
-                         value => value == null
-                                        ? 0
-                                        : ((value is decimal) ? (decimal)value : Convert.ToDecimal(value)));
-            AddConverter(typeof(double),
-                         value => value == null
-                                      ? 0
-                                      : ((value is double) ? (double)value : Convert.ToDouble(value)));
-            AddConverter(typeof(float),
-                         value => value == null ? 0 : ((value is float) ? (float)value : Convert.ToSingle(value)));
-            AddConverter(typeof(int),
-                         value => value == null ? 0 : ((value is int) ? (int)value : Convert.ToInt32(value)));
-            AddConverter(typeof(long),
-                         value => value == null ? 0 : ((value is long) ? (long)value : Convert.ToInt64(value)));
-            AddConverter(typeof(uint),
-                         value => value == null ? 0 : ((value is uint) ? (uint)value : Convert.ToUInt32(value)));
-            AddConverter(typeof(ulong),
-                         value => value == null ? 0 : ((value is ulong) ? (ulong)value : Convert.ToUInt64(value)));
-            AddConverter(typeof(DateTime),
-                         value => value.ToDateTime());
-            AddConverter(typeof(string),
-                         value => value == null
-                                      ? string.Empty
-                                      : ((value is string) ? (string)value : value.ToString()));
+            AddConverter(typeof(bool), value => value.ToBoolean());
+            AddConverter(typeof(decimal), value => value.ToDecimal());
+            AddConverter(typeof(double), value => value.ToDouble());
+            AddConverter(typeof(float), value => value == null ? 0 : ((value is float) ? (float)value : Convert.ToSingle(value)));
+            AddConverter(typeof(int), value => value.ToInt32());
+            AddConverter(typeof(long), value => value.ToInt64());
+            AddConverter(typeof(uint),value => value.ToUInt32());
+            AddConverter(typeof(ulong),value => value.ToUInt64());
+            AddConverter(typeof(DateTime),value => value.ToDateTime());
+            AddConverter(typeof(string),value => value == null? string.Empty: ((value is string) ? (string)value : value.ToString()));
             AddConverter(typeof(DynamicEntity),
                          value =>
                          {
@@ -138,6 +121,48 @@ double*/
         public static void AddConverter(this Type type, Func<object, object> converter)
         {
             ValueConverters[type] = converter;
+        }
+
+        public static object GetConverterValue(this Type type, object value)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+
+            Func<object, object> converter = null;
+            if (value.GetType() == type)
+            {
+                return value;
+            }
+
+            if (ValueConverters.TryGetValue(type, out converter))
+            {
+                return converter(value);
+            }
+
+            if (type.IsEnum)
+            {
+                return (value is int) ? value : Enum.Parse(type, value.ToString(), true);
+            }
+
+            if (value == null && type.IsValueType == false)
+            {
+                return default;
+            }
+            else
+            {
+                try
+                {
+                    var json = value.ToJson();
+                    return json.ToJsonObject(type);
+                }
+                catch
+                {
+                    throw new ArgumentOutOfRangeException("value",
+                                                      string.Format("值{0}与类型{1}不匹配", value, type.FullName));
+                }
+            }
         }
 
         public static T GetConverterValue<T>(this object value)

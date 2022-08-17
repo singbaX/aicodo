@@ -378,7 +378,7 @@ namespace AiCodo.Data
                 (c) => { sb.AppendFormat("{0}={1}\r\n", GetName(c.Name), GetParameter(c.Name)); },
                 (c) => { sb.AppendFormat(",{0}={1}\r\n", GetName(c.Name), GetParameter(c.Name)); });
             sb.Append(" WHERE ");
-            updateColumns.Where(c => c.IsKey).ForEachWithFirst(
+            table.Columns.Where(c => c.IsKey).ForEachWithFirst(
                 (c) => { sb.AppendFormat("{0}={1}", GetName(c.Name), GetParameter(c.Name)); },
                 (c) => { sb.AppendFormat(" AND {0}={1}", GetName(c.Name), GetParameter(c.Name)); });
             return sb.ToString();

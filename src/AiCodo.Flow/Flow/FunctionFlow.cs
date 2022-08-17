@@ -327,6 +327,7 @@ namespace AiCodo.Flow.Configs
         #region 属性 Actions
         private CollectionBase<FlowActionBase> _Actions = null;
         [XmlElement("Action", typeof(FunctionFlowAction))]
+        [XmlElement("Setter", typeof(SetterAction))]
         [XmlElement("Flow", typeof(SubFlowAction))]
         [XmlElement("Switch", typeof(SwitchAction))]
         [XmlElement("ForEach", typeof(ForEachAction))]
@@ -967,6 +968,16 @@ namespace AiCodo.Flow.Configs
         {
             #region 准备参数
             var args = new Dictionary<string, object>();
+            if (flowArgs.TryGetValue(FlowContext.RootArgsName, out var rootArgs))
+            {
+                args.Add(FlowContext.RootArgsName, rootArgs);
+            }
+            if (flowArgs.TryGetValue(FlowContext.RootContextArgName, out var rootContext))
+            {
+                args.Add(FlowContext.RootContextArgName, rootContext);
+            }
+            args.Add(FlowContext.ParentArgsName, flowArgs);
+
             foreach (var p in algItem.GetParameters())
             {
                 try
@@ -982,7 +993,14 @@ namespace AiCodo.Flow.Configs
                         }
                         else if (actionParameter.Expression.IsNullOrEmpty())
                         {
-                            pvalue = GetInputValue(flowArgs, p);
+                            if (actionParameter.DefaultValue.IsNotEmpty())
+                            {
+                                pvalue = actionParameter.DefaultValue;
+                            }
+                            else
+                            {
+                                pvalue = GetInputValue(flowArgs, p);
+                            }
                         }
                         else
                         {
@@ -993,13 +1011,55 @@ namespace AiCodo.Flow.Configs
                     {
                         pvalue = GetInputValue(flowArgs, p);
                     }
-                    args[p.Name] = p.GetValue(pvalue);
+                    args[p.Name] = actionParameter.GetValue(pvalue);
                 }
                 catch (Exception ex)
                 {
                     this.Log($"函数[{Name}] 设置参数值出错[{p.Name}] ：{ex}");
                     throw;
                 }
+            }
+            #endregion
+            return args;
+        }
+
+        public Dictionary<string, object> CreateSubFlowArgs(Dictionary<string, object> flowArgs, Interpreter exp)
+        {
+            #region 准备参数
+            var args = new Dictionary<string, object>();
+            if (flowArgs.TryGetValue(FlowContext.RootArgsName, out var rootArgs))
+            {
+                args.Add(FlowContext.RootArgsName, rootArgs);
+            }
+            if (flowArgs.TryGetValue(FlowContext.RootContextArgName, out var rootContext))
+            {
+                args.Add(FlowContext.RootContextArgName, rootContext);
+            }
+            args.Add(FlowContext.ParentArgsName, flowArgs);
+
+            foreach (var p in Parameters)
+            {
+                object pvalue = null;
+                if (p.Expression.IsNullOrEmpty())
+                {
+                    if (p.DefaultValue.IsNotEmpty())
+                    {
+                        pvalue = p.DefaultValue;
+                    }
+                    else if (flowArgs.TryGetValue(p.Name, out object fvalue))
+                    {
+                        pvalue = fvalue;
+                    }
+                    else
+                    {
+                        throw new Exception($"{p.Name}没有配置参数");
+                    }
+                }
+                else
+                {
+                    pvalue = exp.Eval(p.Expression);
+                }
+                args[p.Name] = p.GetValue(pvalue);
             }
             #endregion
             return args;
@@ -1149,6 +1209,26 @@ namespace AiCodo.Flow.Configs
 
     public partial class ActionInputParameter : ParameterBase
     {
+        #region 属性 DefaultValue
+        private string _DefaultValue = string.Empty;
+        /// <summary>
+        /// 默认值
+        /// </summary>
+        [XmlAttribute("DefaultValue"), DefaultValue("")]
+        public string DefaultValue
+        {
+            get
+            {
+                return _DefaultValue;
+            }
+            set
+            {
+                _DefaultValue = value;
+                RaisePropertyChanged("DefaultValue");
+            }
+        }
+        #endregion
+
         #region 属性 Expression
         private string _Expression = string.Empty;
         [XmlAttribute("Expression")]

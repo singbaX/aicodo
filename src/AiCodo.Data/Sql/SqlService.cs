@@ -30,6 +30,8 @@ namespace AiCodo.Data
             SqlItem sql = GetSqlItem(sqlName);
             switch (sql.SqlType)
             {
+                case SqlType.QueryOne:
+                    return sql.ExecuteQuery<DynamicEntity>(nameValues);
                 case SqlType.Execute:
                     return sql.ExecuteNoneQuery(nameValues);
                 case SqlType.Scalar:
