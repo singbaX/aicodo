@@ -29,6 +29,11 @@ namespace AiCodo.Data
 
         string ResetQueryLimit(string sql, int from, int count);
         string ResetQueryTotal(string sql);
+        string GetLastIdentity(string tableName = "", string fieldName = "");
+        
+        string GetName(string columnName);
+        
+        string GetParameter(string columnName);
 
         IEnumerable<string> GetParameters(string commandText);
 

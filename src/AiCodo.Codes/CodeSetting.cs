@@ -5,12 +5,11 @@
 // 您可以私用、商用部分或全部代码，修改源码时，请保持原代码的完整性，以免因为版本升级导致问题。
 namespace AiCodo.Codes
 {
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Text;
-    using System.Xml.Serialization;
     using System.Linq;
+    using System.Xml.Serialization;
+
     [XmlRoot("CodeSetting")]
     public class CodeSetting : EntityBase
     {
@@ -22,6 +21,11 @@ namespace AiCodo.Codes
 
         private Dictionary<string, Dictionary<string,TypeMapping>> _TypeMappingItems = new Dictionary<string, Dictionary<string, TypeMapping>>();
         private Dictionary<string, ParameterType> _GlobalParametersItems = new Dictionary<string, ParameterType>();
+
+        static CodeSetting()
+        {
+
+        }
 
         #region 属性 Current
         private static CodeSetting _Current = null;

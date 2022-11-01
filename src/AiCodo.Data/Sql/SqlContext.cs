@@ -43,6 +43,12 @@ namespace AiCodo.Data
             _Provider = DbProviderFactories.GetProvider(_SqlConn.ProviderName);
         }
 
+        public SqlContext(string sql, string providerName)
+        {
+            Sql = sql;
+            _Provider = DbProviderFactories.GetProvider(providerName);
+        }
+
         private SqlConnection GetSqlConnection()
         {
             var sqlItem = _SqlItem;

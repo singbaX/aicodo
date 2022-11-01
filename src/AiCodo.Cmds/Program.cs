@@ -15,14 +15,23 @@ Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 var error = "";
 
 Console.WriteLine(@"AiCodo命令行执行模式，支持以下命令：");
+if (args == null || args.Length == 0)
+{
+    Console.WriteLine(@"你使用的是无参数模式，如果需要修改配置路径及代码路径，可以使用带参数的方式
+AiCodo.Cmds {配置路径} {代码路径}
+路径可以使用相对本程序运行目录的路径
+");
+}
 Console.WriteLine(@"刷新表：reloadtables");
-Console.WriteLine(@"生成代码：codetable sys_user entity User.cs");
-Console.WriteLine(@"生成代码：codesql sys_user entity User.cs");
+Console.WriteLine(@"列出所有表：listtables");
+Console.WriteLine(@"列出所有表：listtables");
+Console.WriteLine(@"基于表结果生成代码：codetable {表名} {模板名} {文件名}");
+Console.WriteLine(@"基于表命令生成代码：codesql {表名} {模板名} {文件名}");
+Console.WriteLine(@"基于配置文件代码：code {模板名称} {文件名}");
 Console.WriteLine(@"开始直接支持CodeService的命令，命令codecmd
 导出excel表结构：codecmd export filename schema.xlsx 
 用xslt样式转换xml：codecmd xslt xmlfile a.xml xsltfile x.xslt filename newfile.xx
-
-为了方便调用其它命令，可以直接运行本目录下其它命令
+为了方便调用其它命令，可以直接运行本目录下其它命令，更多命令，请参考cmd.md
 ");
 
 if (args != null && args.Length > 0)
@@ -30,7 +39,6 @@ if (args != null && args.Length > 0)
     var configRoot = args[0].FixedAppBasePath();
     if (System.IO.Directory.Exists(configRoot))
     {
-        "Program".Log($"加载文件夹[{args[0]}]");
         ApplicationConfig.LocalConfigFolder = configRoot;
     }
 
@@ -58,6 +66,16 @@ Dictionary<string, Action<string[]>> methods = new Dictionary<string, Action<str
 CodeCommands.GetMethods().ForEach(item => methods[item.Key] = item.Value);
 
 Console.WriteLine("代码模板");
+
+//RazorEngine.Compilation.ReferenceResolver.UseCurrentAssembliesReferenceResolver
+
+var codeSettingFile = "CodeSetting.xml".FixedAppConfigPath();
+if (codeSettingFile.IsFileNotExists())
+{
+    new CodeSetting().SaveXDoc(codeSettingFile);
+    "APP".Log($"代码设置文件不存在，创建默认文件：{codeSettingFile}");
+}
+
 CodeSetting.Current.Templates.ForEach(t =>
 {
     Console.WriteLine($"[{t.Name}] - [{t.FileName}]");

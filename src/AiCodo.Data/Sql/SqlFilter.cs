@@ -104,7 +104,7 @@ namespace AiCodo.Data
         }
     }
 
-    public class LogicFilter : SqlFilter,ILogicFilter
+    public class LogicFilter : SqlFilter, ILogicFilter
     {
         public LogicJoinType Type { get; set; } = LogicJoinType.And;
 
@@ -131,6 +131,28 @@ namespace AiCodo.Data
 
     public class FilterBuilder
     {
+        public static SqlFilter Create(FilterItem filter)
+        {
+            if (filter.Items.Count == 0)
+            {
+                if (!Enum.TryParse<LogicCompareType>(filter.Type, out LogicCompareType type))
+                {
+                    type = LogicCompareType.Eq;
+                }
+                return new CompareFilter(filter.Name, filter.Value, type);
+            }
+            else
+            {
+                if (!Enum.TryParse<LogicJoinType>(filter.Type, out LogicJoinType join))
+                {
+                    join = LogicJoinType.And;
+                }
+                var subItems = filter.Items.Select(f => Create(f));
+                return Join(subItems, join);
+            }
+        }
+
+
         public static SqlFilter Id(string id)
         {
             return new CompareFilter("_id", id, LogicCompareType.Eq);

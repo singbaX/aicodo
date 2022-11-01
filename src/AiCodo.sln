@@ -43,6 +43,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.Flow", "AiCodo.Flow\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.Flow.Tests", "AiCodo.Flow.Tests\AiCodo.Flow.Tests.csproj", "{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiCodo.WebLogger", "AiCodo.WebLogger\AiCodo.WebLogger.csproj", "{06CAAC05-7764-46DC-A159-88482DACC15A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCE4B5E2-2ABF-47D2-898F-C193DF66BF6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06CAAC05-7764-46DC-A159-88482DACC15A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06CAAC05-7764-46DC-A159-88482DACC15A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06CAAC05-7764-46DC-A159-88482DACC15A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06CAAC05-7764-46DC-A159-88482DACC15A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,10 +114,11 @@ Global
 		{7D0E1726-F5BE-4295-BAA7-D26E836F0EAA} = {97A0AD20-950C-4503-A57D-7FB3D3955068}
 		{E64410BC-A639-4EBE-ADC2-746C12F94BC9} = {80838BCB-A030-4E79-9222-99B78F79CE97}
 		{CCC340E9-4F05-4E6D-ABC2-9013E91F1408} = {80838BCB-A030-4E79-9222-99B78F79CE97}
+		{06CAAC05-7764-46DC-A159-88482DACC15A} = {381F9582-AC98-4E28-9EB0-42F5C6F11340}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3596AF08-C083-4973-BE36-999B498E0768}
 		VisualSVNWorkingCopyRoot = .
+		SolutionGuid = {3596AF08-C083-4973-BE36-999B498E0768}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		AiCodo.Shared\AiCodo.Shared.projitems*{7137d73f-900a-4ef0-aab7-64b7fc6e4d5e}*SharedItemsImports = 13

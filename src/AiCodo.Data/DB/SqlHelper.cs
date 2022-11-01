@@ -229,6 +229,17 @@ namespace AiCodo.Data
             }
         }
 
+        public static object ExecuteScalar(this DbConnection db,DbTransaction trans,  string sql, params object[] nameParas)
+        {
+            lock (db)
+            {
+                var cmd = db.CreateDBCommand(sql, nameParas);
+                cmd.Transaction = trans;
+                var result = cmd.ExecuteScalar();
+                return result;
+            }
+        }
+
         public static int ExecuteNoneQuery(this DbConnection db, DbTransaction trans, SqlItem sql, params object[] nameParas)
         {
             lock (db)

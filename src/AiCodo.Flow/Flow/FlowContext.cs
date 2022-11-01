@@ -32,7 +32,7 @@ namespace AiCodo.Flow.Configs
 
         public string LastErrorCode { get; private set; } = "";
 
-        public FlowContext(Dictionary<string, object> args = null)
+        public FlowContext(IDictionary<string, object> args = null)
         {
             if (args != null)
             {

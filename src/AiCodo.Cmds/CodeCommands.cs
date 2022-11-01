@@ -3,13 +3,8 @@
 // See the LICENSE file in the project root for more information.
 // 本程序文件开源，遵循MIT开源协议，如有疑问请联系作者（singba@163.com）
 // 您可以私用、商用部分或全部代码，修改源码时，请保持原代码的完整性，以免因为版本升级导致问题。
+using AiCodo.Codes;
 using AiCodo.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AiCodo.Cmds
 {
@@ -19,10 +14,18 @@ namespace AiCodo.Cmds
         {
             {"reloadtables",(args)=>ReloadTables() },
             {"listtables",(args)=>ListTables() },
-            {"code",(args)=>CreateCodeOfConfig(args[0],args[1]) },
+            {"code",(args)=>CreateCodeOfConfig(args[0],args.Length>1?args[1]:"") },
             {"codetable",(args)=>CreateCodeOfTable(args[0],args[1],args[2]) },
             {"codesql",(args)=>CreateCodeOfSqlTable(args[0],args[1],args[2]) },
             {"codecmd",RunCmd},
+            {"set" ,(args)=>SetValue(args[0],args[1]) },
+        };
+
+        static Dictionary<string, Func<string, string>> _SetMethods = new Dictionary<string, Func<string, string>>
+        {
+            {"configroot",v=> { ApplicationConfig.LocalConfigFolder=v.FixedAppBasePath();return ApplicationConfig.LocalConfigFolder; } },
+            {"templateroot",v=> { CodeService.TemplateRoot=v.FixedAppBasePath();return CodeService.TemplateRoot; } },
+            {"coderoot",v=> { CodeService.CodeRoot=v.FixedAppBasePath();return CodeService.CodeRoot; } }
         };
 
         static CodeCommands()
@@ -60,10 +63,10 @@ namespace AiCodo.Cmds
 
         public static void RunCmd(params string[] args)
         {
-            if(args.Length == 0) return;
+            if (args.Length == 0) return;
             var cmdName = args[0];
             var cmdArgs = new DynamicEntity();
-            for (int i = 1; i < args.Length-1; i+=2)
+            for (int i = 1; i < args.Length - 1; i += 2)
             {
                 cmdArgs.Add(args[i], args[i + 1]);
             }
@@ -78,10 +81,15 @@ namespace AiCodo.Cmds
                 nameof(CodeCommands).Log($"配置文件不存在", Category.Exception);
                 return;
             }
-            var codeFile = GetCodeFileName(fileName);
-            Codes.CodeService.CreateCodeWithTemplate(model, templateName)
-                .WriteTo(codeFile);
-            nameof(CodeCommands).Log($"文件已生成[{codeFile}]");
+
+            var codeText = Codes.CodeService.CreateCodeWithTemplate(model, templateName);
+            nameof(CodeCommands).Log($"执行模板[{templateName}]\r\n{codeText}");
+            if (!fileName.IsNullOrEmpty())
+            {
+                var codeFile = GetCodeFileName(fileName);
+                codeFile.WriteTo(codeFile);
+                nameof(CodeCommands).Log($"文件已生成[{codeFile}]");
+            }
         }
 
         private static void CreateCodeOfTable(string tableName, string templateName, string fileName)
@@ -110,6 +118,22 @@ namespace AiCodo.Cmds
             Codes.CodeService.CreateCodeWithTemplate(table, templateName)
                 .WriteTo(codeFile);
             nameof(CodeCommands).Log($"文件已生成[{codeFile}]");
+        }
+
+        private static string SetValue(string key, string value)
+        {
+            if (_SetMethods.TryGetValue(key.ToLower(), out var method))
+            {
+                try
+                {
+                    return method(value);
+                }
+                catch (Exception ex)
+                {
+                    return $"设置值出错：[{ex}]";
+                }
+            }
+            return $"无效的设置名称[{key}]";
         }
 
         public static string ReadCommandName(string line, out string[] args)
