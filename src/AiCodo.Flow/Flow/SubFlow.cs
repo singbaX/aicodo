@@ -17,6 +17,40 @@ namespace AiCodo.Flow.Configs
 {
     public abstract class SubFlowActionBase : FlowActionBase
     {
+        //protected Dictionary<string, object> CreateSubFlowArgs(Dictionary<string, object> flowArgs, Interpreter exp)
+        //{
+        //    #region 准备参数
+        //    var args = new Dictionary<string, object>();
+        //    if (flowArgs.TryGetValue(FlowContext.RootArgsName, out var rootArgs))
+        //    {
+        //        args.Add(FlowContext.RootArgsName, rootArgs);
+        //    }
+        //    if (flowArgs.TryGetValue(FlowContext.RootContextArgName, out var rootContext))
+        //    {
+        //        args.Add(FlowContext.RootContextArgName, rootContext);
+        //    }
+        //    args.Add(FlowContext.ParentArgsName, flowArgs);
+
+        //    foreach (var p in Parameters)
+        //    {
+        //        object pvalue = null;
+        //        if (p.IsInherit || p.Expression.IsNullOrEmpty())
+        //        {
+        //            if (flowArgs.TryGetValue(p.Name, out object fvalue))
+        //            {
+        //                pvalue = p.GetValue(fvalue);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            pvalue = p.GetValue(exp.Eval(p.Expression));
+        //        }
+        //        args[p.Name] = pvalue;
+        //    }
+        //    #endregion
+        //    return args;
+        //}
+
         protected void ResetResult(FunctionResult result, DynamicEntity data)
         {
             data.ForEach(p =>
@@ -672,6 +706,13 @@ namespace AiCodo.Flow.Configs
                         t.SetValue(item.Key, item.Value);
                     });
                 }
+                //else if (obj is IStringValue svalue)
+                //{
+                //    args.ForEach(item =>
+                //    {
+                //        svalue.SetStringValue(item.Key, item.Value == null ? "" : item.Value is string v ? v : item.Value.ToString());
+                //    });
+                //}
                 else
                 {
                     args.ForEach(item =>

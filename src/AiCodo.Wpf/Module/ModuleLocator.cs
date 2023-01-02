@@ -28,10 +28,10 @@ namespace AiCodo
         static ModuleLocator()
         {
             var builder = new ContainerBuilder();
-            Builder = builder;            
+            Builder = builder;
         }
-        
-        public static void StartAutofac<TWindow>(this Application app) where TWindow:Window
+
+        public static void StartAutofac<TWindow>(this Application app) where TWindow : Window
         {
             Builder.RegisterType<TWindow>().AsSelf();
             Builder.RegisterType<ViewService>().As<IViewService>().SingleInstance();
@@ -40,14 +40,13 @@ namespace AiCodo
             ViewService = Container.Resolve<IViewService>();
             ViewService.SetContainer(Container);
 
-            using (var scope = container.BeginLifetimeScope())
-            { 
-                var window = scope.Resolve<TWindow>();
-                window.Show();
-            }
+            var scope = container.BeginLifetimeScope();
+            ServiceLocator.Current.SetContext(scope);
+            var window = scope.Resolve<TWindow>();
+            window.Show();
         }
 
-        public static void Register<TModule>() where TModule : IModule, new ()
+        public static void Register<TModule>() where TModule : IModule, new()
         {
             Builder.RegisterModule<TModule>();
             Builder.RegisterViews(typeof(TModule).Assembly);
@@ -56,11 +55,37 @@ namespace AiCodo
         public static ContainerBuilder RegisterViews(this ContainerBuilder builder, Assembly assembly)
         {
             builder.RegisterAssemblyTypes(assembly)
-                .Where(t => t.GetCustomAttribute(typeof(ViewExportAttribute)) != null)
+                .Where(t =>
+                {
+                    var attr = t.GetCustomAttribute(typeof(ViewExportAttribute));
+                    return attr != null && ((ViewExportAttribute)attr).IsShared;
+                })
+                .Named<IView>(t => ((ViewExportAttribute)t.GetCustomAttribute(typeof(ViewExportAttribute))).Name)
+                .SingleInstance();
+
+            builder.RegisterAssemblyTypes(assembly)
+                .Where(t =>
+                {
+                    var attr = t.GetCustomAttribute(typeof(ViewExportAttribute));
+                    return attr != null && ((ViewExportAttribute)attr).IsShared==false;
+                })
                 .Named<IView>(t => ((ViewExportAttribute)t.GetCustomAttribute(typeof(ViewExportAttribute))).Name);
 
             builder.RegisterAssemblyTypes(assembly)
-                .Where(t => t.GetCustomAttribute(typeof(ViewModelExportAttribute)) != null)
+                .Where(t =>
+                {
+                    var attr = t.GetCustomAttribute(typeof(ViewModelExportAttribute));
+                    return attr != null && ((ViewModelExportAttribute)attr).IsShared;
+                })
+                .Named<IViewModel>(t => ((ViewModelExportAttribute)t.GetCustomAttribute(typeof(ViewModelExportAttribute))).Name)
+                .SingleInstance();
+
+            builder.RegisterAssemblyTypes(assembly)
+                .Where(t =>
+                {
+                    var attr = t.GetCustomAttribute(typeof(ViewModelExportAttribute));
+                    return attr != null && ((ViewModelExportAttribute)attr).IsShared==false;
+                })
                 .Named<IViewModel>(t => ((ViewModelExportAttribute)t.GetCustomAttribute(typeof(ViewModelExportAttribute))).Name);
 
             return builder;

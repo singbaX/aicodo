@@ -7,8 +7,11 @@ using AiCodo;
 using AiCodo.Cmds;
 using AiCodo.Codes;
 using AiCodo.Data;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Text;
+using System.Collections;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -33,6 +36,20 @@ Console.WriteLine(@"开始直接支持CodeService的命令，命令codecmd
 用xslt样式转换xml：codecmd xslt xmlfile a.xml xsltfile x.xslt filename newfile.xx
 为了方便调用其它命令，可以直接运行本目录下其它命令，更多命令，请参考cmd.md
 ");
+
+RazorHelper.AddTemplateAssembly(typeof(INotifyCollectionChanged).Assembly);
+RazorHelper.AddTemplateAssembly(typeof(List<>).Assembly);
+RazorHelper.AddTemplateAssembly(typeof(System.Collections.Generic.Queue<>).Assembly);
+RazorHelper.AddTemplateAssembly(typeof(System.Xml.XmlDocument).Assembly);
+
+foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+{
+    var name = asm.GetName().Name;
+    if (name.IsNotNullOrEmpty())
+    {
+        RazorHelper.AddTemplateAssembly(asm);
+    }
+}
 
 if (args != null && args.Length > 0)
 {

@@ -8,6 +8,9 @@
     <Page Update="Themes\AiWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Themes\BlockControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Themes\Buttons.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -18,6 +21,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Themes\ItemsCommandControl.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Themes\Window.xaml">

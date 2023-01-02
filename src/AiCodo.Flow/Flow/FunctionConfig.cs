@@ -20,26 +20,31 @@ namespace AiCodo.Flow.Configs
     {
         const string _ConfigFile = "FunctionConfig.xml";
 
-        public const string Type_Bool= "Bool";
-        public const string Type_Int= "Int";
-        public const string Type_Long= "Long";
+        public const string Type_Bool = "Bool";
+        public const string Type_Int = "Int";
+        public const string Type_Long = "Long";
         public const string Type_Single = "Single";
-        public const string Type_Double  = "Double";
-        public const string Type_String  = "String";
-        public const string Type_DateTime  = "DateTime";
-        public const string Type_FilePath= "FilePath";
-        public const string Type_Image   = "Image";
-        public const string Type_Object  = "Object";
-        public const string Type_List    = "List";
+        public const string Type_Double = "Double";
+        public const string Type_String = "String";
+        public const string Type_Date = "Date";
+        public const string Type_Time = "Time";
+        public const string Type_DateTime = "DateTime";
+        public const string Type_FilePath = "FilePath";
+        public const string Type_Image = "Image";
+        public const string Type_Object = "Object";
+        public const string Type_List = "List";
 
         static readonly List<ParameterTypeDefine> _StaticTypes = new List<ParameterTypeDefine>
         {
+            new ParameterTypeDefine { Name = "Any",    Type = ParameterType.Any },
             new ParameterTypeDefine { Name = "Bool",    Type = ParameterType.Bool },
             new ParameterTypeDefine { Name = "Int",     Type = ParameterType.Int },
             new ParameterTypeDefine { Name = "Long",    Type = ParameterType.Long },
             new ParameterTypeDefine { Name = "Single",  Type = ParameterType.Single },
             new ParameterTypeDefine { Name = "Double",  Type = ParameterType.Double },
             new ParameterTypeDefine { Name = "String",  Type = ParameterType.String },
+            new ParameterTypeDefine { Name = "Date",  Type = ParameterType.Date },
+            new ParameterTypeDefine { Name = "Time",  Type = ParameterType.Time },
             new ParameterTypeDefine { Name = "DateTime",  Type = ParameterType.DateTime },
             new ParameterTypeDefine { Name = "FilePath",Type = ParameterType.FilePath },
             new ParameterTypeDefine { Name = "Image",   Type = ParameterType.Image },
@@ -353,12 +358,12 @@ namespace AiCodo.Flow.Configs
         {
             get
             {
-                if(_Current == null)
+                if (_Current == null)
                 {
                     lock (_LoadLock)
                     {
-                        if(_Current == null)
-                        { 
+                        if (_Current == null)
+                        {
                             _Current = CreateOrLoad<FunctionConfig>(_ConfigFile);
                         }
                     }
@@ -380,6 +385,84 @@ namespace AiCodo.Flow.Configs
         public ParameterTypeDefine GetType(string name)
         {
             return AllTypes.FirstOrDefault(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    public static class FunctionConfigTypeHelper
+    {
+        public static ParameterType ToParameterType(this string typeName)
+        {
+            var type = ParameterType.Any;
+            if (typeName.IsNotEmpty())
+            {
+                var config = FunctionConfig.Current;
+                var typeItem = config.GetType(typeName);
+                if (typeItem != null)
+                {
+                    type = typeItem.Type;
+                }
+            }
+            return type;
+        }
+
+        public static object ConvertToParameterValue(this object value, string typeName)
+        {
+            return ConvertToParameterValue(value, typeName.ToParameterType());
+        }
+
+        public static object ConvertToParameterValue(this object value, ParameterType type)
+        {
+            try
+            {
+                switch (type)
+                {
+                    case ParameterType.Bool:
+                        return value.ToBoolean();
+                    case ParameterType.Int:
+                        return value.ToInt32();
+                    case ParameterType.Long:
+                        return value.ToInt64();
+                    case ParameterType.Double:
+                        return value.ToDouble();
+                    case ParameterType.Single:
+                        return (Single)value.ToDouble();
+                    case ParameterType.Object:
+                        return value;
+                    case ParameterType.List:
+                        if (value is IList ilist)
+                        {
+                            return ilist;
+                        }
+                        return value;
+                    case ParameterType.FilePath:
+                        if (value is string file)
+                        {
+                            if (file.IsNullOrEmpty())
+                            {
+                                return "";
+                            }
+
+                            var dir = Path.GetDirectoryName(file);
+                            dir.CreateFolderIfNotExists();
+                            return file;
+                        }
+                        return value.ToString();
+                    case ParameterType.DateTime:
+                        return value.ToDateTime();
+                    case ParameterType.Option:
+                    case ParameterType.String:
+                    case ParameterType.Image:
+                        return value == null ? "" : value.ToString();
+                    default:
+                        return value;
+                }
+            }
+            catch (Exception ex)
+            {
+                "FunctionConfigType".Log($"转换值出错：{type} {value}", Category.Exception);
+                ex.WriteErrorLog();
+                throw;
+            }
         }
     }
 
@@ -1091,7 +1174,7 @@ namespace AiCodo.Flow.Configs
 
     public enum ParameterType
     {
-        None,
+        Any,
         Option,
         Bool,
         Int,
@@ -1099,6 +1182,8 @@ namespace AiCodo.Flow.Configs
         Single,
         Double,
         String,
+        Date,
+        Time,
         DateTime,
         Object,
         List,
@@ -1221,7 +1306,7 @@ namespace AiCodo.Flow.Configs
         #endregion
 
         #region 属性 Type
-        private ParameterType _Type = ParameterType.None;
+        private ParameterType _Type = ParameterType.Any;
         /// <summary>
         /// 参数类型：int,string,image,imagelist
         /// </summary>
@@ -1230,7 +1315,7 @@ namespace AiCodo.Flow.Configs
         {
             get
             {
-                if (_Type == ParameterType.None)
+                if (_Type == ParameterType.Any)
                 {
                     _Type = GetParameterType();
                 }
@@ -1268,8 +1353,8 @@ namespace AiCodo.Flow.Configs
 
         public ParameterType GetParameterTypeOfName(string typeName)
         {
-            var type = ParameterType.None;
-            if (TypeName.IsNotEmpty())
+            var type = ParameterType.Any;
+            if (typeName.IsNotEmpty())
             {
                 if (ConfigRoot is FunctionConfig config)
                 {
@@ -1311,56 +1396,7 @@ namespace AiCodo.Flow.Configs
 
         public object GetValue(object value)
         {
-            try
-            {
-                switch (Type)
-                {
-                    case ParameterType.Bool:
-                        return value.ToBoolean();
-                    case ParameterType.Int:
-                        return value.ToInt32();
-                    case ParameterType.Long:
-                        return value.ToInt64();
-                    case ParameterType.Double:
-                        return value.ToDouble();
-                    case ParameterType.Single:
-                        return (Single)value.ToDouble();
-                    case ParameterType.Object:
-                        return value;
-                    case ParameterType.List:
-                        if (value is IList ilist)
-                        {
-                            return ilist;
-                        }
-                        return value;
-                    case ParameterType.FilePath:
-                        if (value is string file)
-                        {
-                            if (file.IsNullOrEmpty())
-                            {
-                                return "";
-                            }
-
-                            var dir = Path.GetDirectoryName(file);
-                            dir.CreateFolderIfNotExists();
-                            return file;
-                        }
-                        return value.ToString();
-                    case ParameterType.DateTime:
-                        return value.ToDateTime();
-                    case ParameterType.Option:
-                    case ParameterType.String:
-                    case ParameterType.Image:
-                        return value == null ? "" : value.ToString();
-                    default:
-                        return value;
-                }
-            }
-            catch (Exception ex)
-            {
-                this.Log($"转换值出错：{Type} {value}", Category.Exception);
-                throw;
-            }
+            return value.ConvertToParameterValue(Type);
         }
     }
 

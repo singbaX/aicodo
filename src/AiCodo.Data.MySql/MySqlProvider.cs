@@ -29,6 +29,9 @@ namespace AiCodo.Data
 
         #region sql
 
+        const string MySql_CheckTable = @"SELECT EXISTS(SELECT f.* FROM information_schema.`TABLES` f
+WHERE f.TABLE_SCHEMA='{0}' AND f.TABLE_NAME='{1}')";
+
         public static string MySql_GetTables { get; set; } =
  @"select T.TABLE_NAME,T.`ENGINE` from information_schema.TABLES T
 WHERE T.TABLE_SCHEMA=@DBName AND T.TABLE_TYPE= 'BASE TABLE'";
@@ -150,10 +153,16 @@ WHERE T.TABLE_SCHEMA=@DBName AND T.TABLE_TYPE= 'BASE TABLE'";
             return items.Select(s => s.GetString("TABLE_NAME"));
         }
 
+        public override string ExistsTable(string dbName, string tableName)
+        {
+            return string.Format(MySql_CheckTable, dbName, tableName);
+        }
+
         public override string CreateView(string name, string select, bool replace = true)
         {
             return $"CREATE{(replace ? " OR REPLACE" : "")} VIEW {name} AS \r\n{select}";
         }
+
 
         public override string CreateTable(TableSchema t)
         {
@@ -189,10 +198,8 @@ WHERE T.TABLE_SCHEMA=@DBName AND T.TABLE_TYPE= 'BASE TABLE'";
                 comment,
                 defaultValue);
             return sb.ToString();
-            //ALTER TABLE `td_issue`
-            //CHANGE COLUMN `IssueID` `IssueID` INT(11) NOT NULL AUTO_INCREMENT FIRST,
-            //CHANGE COLUMN `ProjectID` `ProjectID` INT(11) NOT NULL DEFAULT '0' AFTER `IssueID`; 
         }
+
 
         private string GetDefaultValue(Column c)
         {
@@ -236,17 +243,40 @@ WHERE T.TABLE_SCHEMA=@DBName AND T.TABLE_TYPE= 'BASE TABLE'";
 
         public override string CreateAlterTable(TableSchema t, TableSchema old)
         {
-            var columns = t.Columns
-                .Where(c => old.Columns.FirstOrDefault(f => f.Name.Equals(c.Name, StringComparison.OrdinalIgnoreCase)) == null)
-                .ToList();
+            var columns = new List<Column>();
+            foreach (var c in t.Columns)
+            {
+                var oldColumn = old.Columns.FirstOrDefault(f => f.Name.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
+                if (oldColumn == null)
+                {
+                    columns.Add(c);
+                    continue;
+                }
+                if (c.ColumnType.Equals(oldColumn.ColumnType, StringComparison.OrdinalIgnoreCase)
+                    && (c.Length == 0 || c.Length == oldColumn.Length))
+                {
+                    continue;
+                }
+                columns.Add(c);
+            }
+
             if (columns.Count == 0)
             {
                 return "";
             }
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"ALTER TABLE `{t.Name}`");
+            sb.AppendLine($"ALTER TABLE `{t.Name}`\r\n");
+            var first = true;
             foreach (var c in columns)
             {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.Append(",\r\n");
+                }
                 var i = t.Columns.IndexOf(c);
                 var after = "";
                 if (i == 0)
@@ -257,12 +287,23 @@ WHERE T.TABLE_SCHEMA=@DBName AND T.TABLE_TYPE= 'BASE TABLE'";
                 {
                     after = $" AFTER `{t.Columns[i - 1].Name}`";
                 }
-                sb.AppendFormat("  `{0}` {1} {2}{3}{4},\r\n", c.Name,
-                    GetFullType(c),
-                    c.NullAble ? "NULL" : "NOT NULL", c.IsAutoIncrement ? " AUTO_INCREMENT" : "",
-                    after);
+
+                var modify = "";
+                if (old.Columns.FirstOrDefault(f => f.Name.Equals(c.Name, StringComparison.OrdinalIgnoreCase)) != null)
+                {
+                    modify = $"CHANGE COLUMN `{c.Name}` `{c.Name}`";
+                }
+                else
+                {
+                    modify = $"ADD COLUMN `{c.Name}`";
+                }
+
+                var nullAble = c.NullAble ? "NULL" : "NOT NULL";
+                var auto = c.IsAutoIncrement ? " AUTO_INCREMENT" : "";
+
+                sb.Append($"{modify} {GetFullType(c)} {nullAble} {auto} {after}");
             }
-            sb.AppendLine(";");
+            sb.Append(";");
             sb.AppendLine("");
             return sb.ToString();
         }

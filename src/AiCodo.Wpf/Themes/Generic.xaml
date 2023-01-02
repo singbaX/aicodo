@@ -5,10 +5,13 @@
     xmlns:ai="clr-namespace:AiCodo.Wpf.Controls">
 
     <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/Colors.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/Buttons.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/AiWindow.xaml"/> 
         <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/AiPage.xaml"/> 
-        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/DialogWindow.xaml"/> 
+        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/DialogWindow.xaml"/>
+        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/BlockControl.xaml"/>
+        <ResourceDictionary Source="/AiCodo.Wpf;component/Themes/ItemsCommandControl.xaml"/> 
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

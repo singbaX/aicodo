@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Include="System" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="AiCodo" />
+		<Using Include="AiCodo.Wpf" />
+		<Using Include="Autofac" /> 
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Autofac" Version="6.5.0" />
+		<PackageReference Include="MahApps.Metro" Version="2.4.9" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\AiCodo.Wpf\AiCodo.Wpf.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Folder Include="Themes\" />
+	</ItemGroup>
+
+</Project>

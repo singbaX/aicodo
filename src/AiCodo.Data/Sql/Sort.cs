@@ -18,8 +18,36 @@ namespace AiCodo.Data
 
         public bool IsDesc { get; set; } = false;
 
+        public Sort() { }
+
+        public Sort(string sort)
+        {
+            var args = sort.Split(' ');
+            if (args.Length == 1)
+            {
+                Name = args[0];
+            }
+            else if (args.Length == 2)
+            {
+                Name = args[0];
+                IsDesc = args[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        public static implicit operator string(Sort sort)
+        { return sort.ToString(); }
+
+        public static implicit operator Sort(string sort)
+        {
+            return new Sort(sort);
+        }
+
         public override string ToString()
         {
+            if (Name.IsNullOrEmpty())
+            {
+                return "";
+            }
             return IsDesc ? $"{Name} DESC" : Name;
         }
     }

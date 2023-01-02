@@ -1,6 +1,7 @@
 ﻿   AiCodo
 
     AiCodo系列类库遵循MIT协议开源，曾用名AF、AF.Net等，如果有看到使用应该是与singba共事过的朋友
+    AiCodo的
 
     MIT License
 

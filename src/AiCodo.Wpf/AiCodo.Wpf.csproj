@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFrameworks>net5.0-windows;net6.0-windows;net7.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,7 +10,7 @@
 		<Company>aicodo.com</Company>
 		<Description>this is a wpf lib for "AiCodo"</Description>
 		<Deterministic>false</Deterministic>
-		<AssemblyVersion>1.0.1</AssemblyVersion>
+		<AssemblyVersion>1.0.10.1</AssemblyVersion>
 		<FileVersion>1.0.*</FileVersion>
 		<PackageLicenseFile>license.txt</PackageLicenseFile>
 		<PackageTags>AiCodo</PackageTags>
@@ -20,7 +20,7 @@
 	
 	<PropertyGroup>
 		<PackageId>AiCodo.Wpf</PackageId>
-		<Version>1.0.8</Version>
+		<Version>1.0.10.3</Version>
 		<Authors>singbaX</Authors>
 		<Company>aicodo.com</Company>
 	</PropertyGroup>

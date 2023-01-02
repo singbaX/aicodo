@@ -10,14 +10,17 @@ namespace AiCodo
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class ViewExportAttribute : Attribute
     {
-        public ViewExportAttribute(string name,bool isDialog=false)
+        public ViewExportAttribute(string name,bool isDialog=false, bool isShared = false)
         {
             Name = name;
-            IsDialog = isDialog;            
+            IsDialog = isDialog;
+            IsShared = isShared;
         }
 
         public string Name { get; }
 
         public bool IsDialog { get; }
+
+        public bool IsShared { get; }
     }
 }

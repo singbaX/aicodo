@@ -293,5 +293,63 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
+        #region 属性 PageID
+        private string _PageID = string.Empty;
+        [XmlAttribute("PageID"), DefaultValue("")]
+        public string PageID
+        {
+            get
+            {
+                return _PageID;
+            }
+            set
+            {
+                _PageID = value;
+                RaisePropertyChanged(() => PageID);
+            }
+        }
+        #endregion
+
+        #region 属性 AuthValue
+        private int _AuthValue = 0;
+        [XmlAttribute("AuthValue"), DefaultValue(0)]
+        public int AuthValue
+        {
+            get
+            {
+                return _AuthValue;
+            }
+            set
+            {
+                if (_AuthValue == value)
+                {
+                    return;
+                }
+                _AuthValue = value;
+                RaisePropertyChanged("AuthValue");
+            }
+        }
+        #endregion
+
+        #region 属性 ResultType
+        private string _ResultType = string.Empty;
+        [XmlAttribute("ResultType"), DefaultValue("")]
+        public string ResultType
+        {
+            get
+            {
+                return _ResultType;
+            }
+            set
+            {
+                if (_ResultType == value)
+                {
+                    return;
+                }
+                _ResultType = value;
+                RaisePropertyChanged("ResultType");
+            }
+        }
+        #endregion
     }
 }

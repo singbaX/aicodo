@@ -26,6 +26,32 @@ namespace AiCodo.Data
             }
         }
 
+        #region 表结构操作方法
+        public bool CheckTable(DbConnection conn, TableSchema table, out string error)
+        {
+            error = "";
+            var sql = ExistsTable(conn.Database, table.Name);
+            if (sql.IsNullOrEmpty())
+            {
+                error = "[ExistsTable] not implement";
+                return false;
+            }
+            var exists = conn.ExecuteScalar(sql).ToBoolean();
+            if (exists)
+            {
+                return true;
+            }
+            var createSql = CreateTable(table);
+            if (createSql.IsNullOrEmpty())
+            {
+                error = "[CreateTable] not implement";
+                return false;
+            }
+            var ok = conn.ExecuteNoneQuery(createSql);
+            return true;
+        }
+        #endregion
+
         public abstract string CreateConnectionString(DynamicEntity args);
 
         public virtual string ResetQueryLimit(string sql, int from, int count)
@@ -222,6 +248,11 @@ namespace AiCodo.Data
         public virtual IEnumerable<TableSchema> LoadTables(DbConnection db)
         {
             return GetTables(db).Select(name => GetTableSchema(db, name));
+        }
+
+        public virtual string ExistsTable(string dbName, string name)
+        {
+            return "";
         }
 
         public virtual string CreateView(string name, string select, bool replace = true)

@@ -10,10 +10,13 @@ namespace AiCodo
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class ViewModelExportAttribute : Attribute
     {
-        public ViewModelExportAttribute(string name) 
+        public ViewModelExportAttribute(string name,bool isShared=false) 
         {
             Name = name;
+            IsShared = isShared;
         }
         public string Name { get; }
+
+        public bool IsShared { get; }
     }
 }

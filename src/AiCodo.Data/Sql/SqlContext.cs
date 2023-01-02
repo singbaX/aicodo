@@ -49,6 +49,18 @@ namespace AiCodo.Data
             _Provider = DbProviderFactories.GetProvider(providerName);
         }
 
+        public SqlContext(SqlItem sqlItem)
+        {
+            _SqlItem = sqlItem;
+            Sql = _SqlItem.CommandText;
+            _SqlConn = GetSqlConnection();
+            if (_SqlConn == null)
+            {
+                throw new Exception($"SqlItem [{sqlItem.Name}] Connection Not Found");
+            }
+            _Provider = DbProviderFactories.GetProvider(_SqlConn.ProviderName);
+        }
+
         private SqlConnection GetSqlConnection()
         {
             var sqlItem = _SqlItem;
@@ -234,7 +246,14 @@ namespace AiCodo.Data
             var where = _Provider.CreateFilter(filter, parameter, "P", ref pindex);
             if (where.IsNotNullOrEmpty())
             {
-                sql = sql + "\r\n WHERE " + where;
+                if (sql.IndexOf("where", StringComparison.OrdinalIgnoreCase) > 0 && Type == SqlType.Query)
+                {
+                    sql = $"SELECT * FROM ({sql}) N WHERE " + where;
+                }
+                else
+                {
+                    sql = sql + "\r\n WHERE " + where;
+                }
             }
             return sql;
         }

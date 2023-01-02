@@ -12,6 +12,21 @@ namespace AiCodo.Flow.Configs
     using System.Reflection;
     using System.Threading;
 
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class ServiceMethodAttribute : Attribute
+    {
+        public ServiceMethodAttribute()
+        {
+        }
+
+        public ServiceMethodAttribute(string serviceName)
+        {
+            ServiceName = serviceName;
+        }
+
+        public string ServiceName { get; private set; }
+    }
+
     public class MethodStartEventArgs : EventArgs
     {
         public int ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
@@ -88,16 +103,44 @@ namespace AiCodo.Flow.Configs
             _Items[name] = item;
         }
 
-        public void RegisterMethod(string name, MethodInfo method)
+        public void RegisterType<T>()
         {
-            FunctionItemConfig item = CreateFunctionItem(method);
-            _Items.Add(name, item);
-            FuncService.SetMethod(name, method);
+            var type = typeof(T);
+            RegisterType(type);
         }
 
-        private static FunctionItemConfig CreateFunctionItem(MethodInfo method)
+        public void RegisterType(Type type)
         {
-            var methodName = method.Name;
+            foreach (var m in type.GetMethods())
+            {
+                if (!m.IsStatic)
+                {
+                    continue;
+                }
+                var attr = (ServiceMethodAttribute)m.GetCustomAttribute(typeof(ServiceMethodAttribute));
+                if (attr != null)
+                {
+                    var typeName = type.Name;
+                    if (typeName.EndsWith("Service"))
+                    {
+                        typeName = typeName.Substring(0, typeName.Length - 7);
+                    }
+                    var serviceName = attr.ServiceName.IsNullOrEmpty() ? $"{type.Name}.{m.Name}" : attr.ServiceName;
+                    RegisterMethod(serviceName, m);
+                }
+            }
+        }
+
+        public void RegisterMethod(string name, MethodInfo method)
+        {
+            FunctionItemConfig item = CreateFunctionItem(name, method);
+            _Items.Add(name, item);
+            FuncService.SetMethod(name, method);
+            this.Log($"注册服务方法：{name}");
+        }
+
+        private static FunctionItemConfig CreateFunctionItem(string methodName, MethodInfo method)
+        {
             var item = new FunctionItemConfig
             {
                 Name = methodName,
@@ -329,7 +372,7 @@ namespace AiCodo.Flow.Configs
                 return new FunctionResult
                 {
                     ErrorCode = FunctionResult.MethodInnerError,
-                    ErrorMessage = ex.Message
+                    ErrorMessage = ex.InnerException == null ? ex.Message : ex.InnerException.Message
                 };
             }
 
@@ -385,10 +428,7 @@ namespace AiCodo.Flow.Configs
                     }
                     else
                     {
-                        foreach (var pinfo in valueType.GetProperties())
-                        {
-                            result.Data.Add(pinfo.Name, pinfo.GetValue(value));
-                        }
+                        result.Data.Add("Result", value);
                     }
                 }
                 else

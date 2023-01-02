@@ -17,6 +17,8 @@ namespace AiCodo.Data
     [XmlRoot("SqlData")]
     public class SqlData : EntityBase
     {
+        public static DynamicEntity ConnectionStrings { get; } = new DynamicEntity();
+
         static string _ConfigFileName = "sql.xml".FixedAppConfigPath();
 
         private static object _LoadLock = new object();
@@ -149,11 +151,7 @@ namespace AiCodo.Data
                 {
                     foreach (var item in connectionStrings)
                     {
-                        var sqlConn = _Current.Connections.FirstOrDefault(c => c.Name.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
-                        if (sqlConn != null)
-                        {
-                            sqlConn.ConnectionString = item.Value.ToString();
-                        }
+                        ConnectionStrings[item.Key] = item.Value;
                     }
                 }
             }
@@ -722,6 +720,15 @@ namespace AiCodo.Data
             return DbProviderFactories.GetProvider(ProviderName);
         }
         #endregion
+
+        public string GetConnectionString()
+        {
+            if (SqlData.ConnectionStrings.TryGetValue(Name, out var connString))
+            {
+                return connString.ToString();
+            }
+            return ConnectionString;
+        }
 
         public TableSchema GetTable(string name)
         {

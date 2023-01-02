@@ -22,7 +22,7 @@ namespace AiCodo.Data
 
         public static DbConnection Open(this SqlConnection sqlConn)
         {
-            return Open(sqlConn.ProviderName, sqlConn.ConnectionString);
+            return Open(sqlConn.ProviderName, sqlConn.GetConnectionString());
         }
 
         public static DbConnection Open(string providerName, string connectionString)

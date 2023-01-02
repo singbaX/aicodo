@@ -1,0 +1,16 @@
+﻿<Window x:Class="AiCodo.WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ai="http://aicodo.com/wpf"
+        xmlns:local="clr-namespace:AiCodo.WpfApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <ai:BlockControl Header="啊啊啊啊啊啊啊啊啊" ShowExpander="True">
+            <TextBlock Text="大法师"/>
+        </ai:BlockControl>
+
+    </Grid>
+</Window>

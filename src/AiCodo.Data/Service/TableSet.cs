@@ -12,6 +12,12 @@ using System.Threading.Tasks;
 
 namespace AiCodo.Data
 {
+    public enum UpdateMode
+    {
+        Update,
+        CreateNew
+    }
+
     public class TableSet
     {
         static Dictionary<string, TableSchema> _TableSchemas = new Dictionary<string, TableSchema>();
@@ -23,12 +29,20 @@ namespace AiCodo.Data
 
         public string LogicKeys { get; set; } = "";
 
+        public string LogicRemoveColumnName { get; set; } = "";
+
+        public UpdateMode UpdateMode { get; set; } = UpdateMode.Update;
+
+        public bool EnableLogicRemove { get; set; } = true;
+
         private SqlConnection _ConnItem = null;
         private TableSchema _Schema = null;
         private IDbProvider _Provider = null;
 
         private bool _HasAutoKey = false;
         private string _AutoKeyName = "";
+
+        private bool _UseConfigSchema = false;
 
         public TableSet(string connName, string tableName)
         {
@@ -46,35 +60,52 @@ namespace AiCodo.Data
                 throw new Exception($"连接[{ConnName}]不存在");
             }
             _ConnItem = conn;
+            _Provider = DbProviderFactories.GetProvider(conn.ProviderName);
 
-            var tableName = $"{ConnName}{TableName}";
-            if (!_TableSchemas.TryGetValue(tableName.ToLower(), out var schema))
+            var name = $"{ConnName}.{TableName}";
+            if (!_TableSchemas.TryGetValue(name.ToLower(), out var schema))
             {
                 lock (_TableSchemas)
                 {
-                    if (!_TableSchemas.TryGetValue(tableName.ToLower(), out schema))
+                    if (!_TableSchemas.TryGetValue(name.ToLower(), out schema))
                     {
-                        schema = conn.GetTable(tableName);
+                        schema = conn.GetTable(TableName);
                         if (schema == null)
                         {
-                            throw new Exception($"表[{tableName}]不存在");
+                            throw new Exception($"表[{name}]不存在");
                         }
-                        _TableSchemas.Add(tableName.ToLower(), schema);
+                        _TableSchemas.Add(name.ToLower(), schema);
                     }
                 }
             }
             _Schema = schema;
-            _Provider = DbProviderFactories.GetProvider(conn.ProviderName);
-            var autoColumn = schema.GetAutoIncrementColumn();
-            if (autoColumn == null)
+            if (_Schema != null)
             {
-                _HasAutoKey = false;
+                var autoColumn = schema.GetAutoIncrementColumn();
+                if (autoColumn == null)
+                {
+                    _HasAutoKey = false;
+                }
+                else
+                {
+                    _HasAutoKey = true;
+                    _AutoKeyName = autoColumn.Name;
+                }
             }
-            else
+        }
+        #endregion
+
+        #region CreateTableIfNotExists
+        public TableSet CreateTableIfNotExists()
+        {
+            using (var db = _ConnItem.Open())
             {
-                _HasAutoKey = true;
-                _AutoKeyName = autoColumn.Name;
+                if (!_Provider.CheckTable(db, _Schema, out string error))
+                {
+                    throw new Exception(error);
+                }
             }
+            return this;
         }
         #endregion
 
@@ -146,9 +177,9 @@ namespace AiCodo.Data
             sb.Append("\r\nWHERE ");
 
             var names = LogicKeys.Split(',');
-            var columns = table.Columns.Where(c => names.FirstOrDefault(f => f.Equals(c.Name, StringComparison.OrdinalIgnoreCase)) != null);
-            columns.Where(c => c.IsKey)
-                .ForEachWithFirst((c) => { sb.AppendFormat("{0}={1}", _Provider.GetName(c.Name), _Provider.GetParameter(c.Name)); },
+            var columns = names.Select(name => table.Columns.FirstOrDefault(c => name.Equals(c.Name, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+            columns.ForEachWithFirst((c) => { sb.AppendFormat("{0}={1}", _Provider.GetName(c.Name), _Provider.GetParameter(c.Name)); },
                 (c) => { sb.AppendFormat(" AND {0}={1}", _Provider.GetName(c.Name), _Provider.GetParameter(c.Name)); });
             return sb.ToString();
         }
@@ -312,6 +343,38 @@ namespace AiCodo.Data
         }
         #endregion
 
+        #region 保存
+        public bool Save<T>(DbConnection conn, DbTransaction trans, T data,
+            Func<T, IEntity> onCreate = null, Func<T, IEntity, IEntity> onUpdate = null) where T : IEntity
+        {
+            if (LogicKeys.IsNullOrEmpty())
+            {
+                throw new Exception("没有设置逻辑主键");
+            }
+            var logicNames = LogicKeys.Split(',');
+            var keys = logicNames.Select(name => data.GetValue(name)).ToArray();
+            var item = GetLogic<DynamicEntity>(keys);
+            if (item == null)
+            {
+                IEntity dataItem = data;
+                if (onCreate != null)
+                {
+                    dataItem = onCreate(data);
+                }
+                return Insert(conn, trans, dataItem);
+            }
+            else
+            {
+                IEntity dataItem = data;
+                if (onUpdate != null)
+                {
+                    dataItem = onUpdate(data, item);
+                }
+                return Update(conn, trans, dataItem);
+            }
+        }
+        #endregion
+
         public T Get<T>(params object[] key) where T : IEntity, new()
         {
             using (var conn = _ConnItem.Open())
@@ -350,7 +413,7 @@ namespace AiCodo.Data
             }
         }
 
-        public List<T> Query<T>(string where, params object[] nameValues) where T : IEntity, new() 
+        public List<T> Query<T>(string where, params object[] nameValues) where T : IEntity, new()
         {
             using (var conn = _ConnItem.Open())
             {
@@ -359,7 +422,7 @@ namespace AiCodo.Data
                 {
                     return default;
                 }
-                 
+
                 return conn.ExecuteQuery<T>(sql, nameValues).ToList();
             }
         }

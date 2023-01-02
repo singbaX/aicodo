@@ -84,10 +84,10 @@ namespace AiCodo.Cmds
 
             var codeText = Codes.CodeService.CreateCodeWithTemplate(model, templateName);
             nameof(CodeCommands).Log($"执行模板[{templateName}]\r\n{codeText}");
-            if (!fileName.IsNullOrEmpty())
+            if (fileName.IsNotNullOrEmpty())
             {
                 var codeFile = GetCodeFileName(fileName);
-                codeFile.WriteTo(codeFile);
+                codeText.WriteTo(codeFile);
                 nameof(CodeCommands).Log($"文件已生成[{codeFile}]");
             }
         }

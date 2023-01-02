@@ -53,6 +53,8 @@ namespace AiCodo.Data
         #endregion
 
         string CreateConnectionString(DynamicEntity args);
+        bool CheckTable(DbConnection conn, TableSchema table, out string error);
+        string ExistsTable(string dbName, string tableName);
         string CreateTable(TableSchema table);
 
         string CreateAlterTable(TableSchema table, TableSchema oldTable);

@@ -11,7 +11,7 @@ namespace AiCodo.Flow.Configs
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
+    using System.Threading.Tasks; 
     public class FlowContext
     {
         public const string RootContextArgName = "_RootContext";
@@ -32,7 +32,7 @@ namespace AiCodo.Flow.Configs
 
         public string LastErrorCode { get; private set; } = "";
 
-        public FlowContext(IDictionary<string, object> args = null)
+        public FlowContext(Dictionary<string, object> args = null)
         {
             if (args != null)
             {
@@ -49,7 +49,7 @@ namespace AiCodo.Flow.Configs
             return this;
         }
 
-        public bool TryGetArg(string name,out object value)
+        public bool TryGetArg(string name, out object value)
         {
             return _Args.TryGetValue(name, out value);
         }
@@ -76,7 +76,7 @@ namespace AiCodo.Flow.Configs
             FlowName = flow.Name;
 
             return Task.Run(() =>
-            { 
+            {
                 if (flow.LockMode == LockMode.Current)
                 {
                     lock (flow)
@@ -92,7 +92,7 @@ namespace AiCodo.Flow.Configs
                         return RunActions(flow);
                     }
                 }
-                
+
                 return RunActions(flow);
             });
         }
@@ -141,6 +141,7 @@ namespace AiCodo.Flow.Configs
             try
             {
                 var actionIndex = 0;
+                IFunctionResult lastActionResult = null;
                 foreach (var action in actions)
                 {
                     var actionStartTime = DateTime.Now;
@@ -159,26 +160,27 @@ namespace AiCodo.Flow.Configs
                         while (!goNext)
                         {
                             tryCount++;
-                            if (!action.TryRun(flow, flowArgs, out var actionResult))
+                            if (!action.TryRun(flow, flowArgs, out lastActionResult))
                             {
-                                continue;
+                                goNext = true;
+                                break;
                             }
 
                             #region 处理返回值
-                            LastErrorCode = actionResult.ErrorCode;
+                            LastErrorCode = lastActionResult.ErrorCode;
 
-                            if (actionResult.IsOK())
+                            if (lastActionResult.IsOK())
                             {
-                                ResetResult(result, flowArgs, action, actionResult);
+                                ResetResult(result, flowArgs, action, lastActionResult);
                                 goNext = true;
                                 break;
                             }
                             else
                             {
-                                AddLog($"执行[{action.Name}]出错：{errorCode}-{actionResult.ErrorMessage}");
+                                AddLog($"执行[{action.Name}]出错：{errorCode}-{lastActionResult.ErrorMessage}");
                                 if (flow.ErrorMode == FlowErrorMode.Break)
                                 {
-                                    errorCode = OnSetError(result, action, actionResult);
+                                    errorCode = OnSetError(result, action, lastActionResult);
                                     goNext = false;
                                     break;
                                 }
@@ -199,7 +201,7 @@ namespace AiCodo.Flow.Configs
                                     }
                                     else
                                     {
-                                        errorCode = OnSetError(result, action, actionResult);
+                                        errorCode = OnSetError(result, action, lastActionResult);
                                         goNext = false;
                                     }
                                 }
@@ -211,6 +213,10 @@ namespace AiCodo.Flow.Configs
                         {
                             break;
                         }
+                    }
+                    catch (FunctionExecuteException)
+                    {
+                        throw;
                     }
                     catch (Exception ex)
                     {
@@ -224,25 +230,24 @@ namespace AiCodo.Flow.Configs
                     }
                     #endregion
                 }
+                if (lastActionResult != null)
+                {
+                    errorCode = lastActionResult.ErrorCode;
+                    errorMessage = lastActionResult.ErrorMessage;
+                }
+                if ((errorCode.IsNotEmpty() && errorCode != FunctionResult.OK) || errorMessage.IsNotEmpty())
+                {
+                    throw new FunctionExecuteException(errorMessage, errorCode);
+                }
             }
-            catch (FunctionExecuteException aex)
+            catch (FunctionExecuteException)
             {
-                errorCode = aex.ErrorCode;
-                errorMessage = aex.Message;
+                throw;
             }
             catch (Exception ex)
             {
                 errorCode = "";
                 errorMessage = ex.Message;
-            }
-
-            if (errorCode.IsNotEmpty() && errorCode != FunctionResult.OK)
-            {
-                result.SetValue("ErrorCode", errorCode);
-            }
-            if (errorMessage.IsNotEmpty())
-            {
-                result.SetValue("ErrorMessage", $"[{ID}] " + errorMessage);
             }
 
             return result;
@@ -284,11 +289,24 @@ namespace AiCodo.Flow.Configs
         {
             foreach (var r in action.ResultParameters)
             {
-                if (!functionResult.TryGetValue(r.Name, out object rvalue))
+                object rvalue = null;
+                if (r.Name.IsNullOrEmpty() && r.DefaultValue.IsNotEmpty())
+                {
+                    if (r.DefaultValue.StartsWith("="))
+                    {
+                        rvalue = r.DefaultValue.Eval(flowArgs);
+                    }
+                    else
+                    {
+                        rvalue = r.DefaultValue;
+                    }
+                }
+                else if (!functionResult.TryGetValue(r.Name, out rvalue))
                 {
                     throw new FunctionExecuteException($"算法[{action.Name}]，没有返回值[{r.Name}]", FunctionResult.FlowConfigError);
                 }
 
+                rvalue = r.GetValue(rvalue);
                 if (r.ResultName.IsNotEmpty())
                 {
                     result.SetValue(r.ResultName, rvalue);

@@ -6,6 +6,7 @@
 namespace AiCodo.Flow.Configs
 {
     using DynamicExpresso;
+    using Newtonsoft.Json;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -74,6 +75,27 @@ namespace AiCodo.Flow.Configs
                 }
                 _IsRange = value;
                 RaisePropertyChanged("IsRange");
+            }
+        }
+        #endregion
+
+        #region 属性 IsVisible
+        private bool _IsVisible = true;
+        [XmlAttribute("IsVisible"), DefaultValue(true)]
+        public bool IsVisible
+        {
+            get
+            {
+                return _IsVisible;
+            }
+            set
+            {
+                if (_IsVisible == value)
+                {
+                    return;
+                }
+                _IsVisible = value;
+                RaisePropertyChanged("IsVisible");
             }
         }
         #endregion
@@ -167,7 +189,7 @@ namespace AiCodo.Flow.Configs
     {
         #region 属性 LockMode
         private LockMode _LockMode = LockMode.None;
-        [XmlAttribute("LockMode"), DefaultValue(typeof(LockMode),"None")]
+        [XmlAttribute("LockMode"), DefaultValue(typeof(LockMode), "None")]
         public LockMode LockMode
         {
             get
@@ -449,6 +471,27 @@ namespace AiCodo.Flow.Configs
             foreach (FlowResultParameter item in oldItems)
             {
                 item.ConfigRoot = null;
+            }
+        }
+        #endregion
+
+        #region 属性 ResultType
+        private string _ResultType = string.Empty;
+        [XmlAttribute("ResultType"), DefaultValue("")]
+        public string ResultType
+        {
+            get
+            {
+                return _ResultType;
+            }
+            set
+            {
+                if (_ResultType == value)
+                {
+                    return;
+                }
+                _ResultType = value;
+                RaisePropertyChanged("ResultType");
             }
         }
         #endregion
@@ -1006,12 +1049,13 @@ namespace AiCodo.Flow.Configs
                         {
                             pvalue = exp.Eval(actionParameter.Expression);
                         }
+                        pvalue = actionParameter.GetValue(pvalue);
                     }
                     else
                     {
                         pvalue = GetInputValue(flowArgs, p);
                     }
-                    args[p.Name] = actionParameter.GetValue(pvalue);
+                    args[p.Name] = pvalue;
                 }
                 catch (Exception ex)
                 {
@@ -1095,7 +1139,8 @@ namespace AiCodo.Flow.Configs
                         {
                             continue;
                         }
-                        throw new FunctionExecuteException($"流程[{flow.Name}]节点[{Name}] Assert异常：{assert.Error}", FunctionResult.AssertError);
+                        this.Log($"流程[{flow.Name}]节点[{Name}] Assert异常：{assert.Error}");
+                        throw new FunctionExecuteException(assert.Error, FunctionResult.AssertError);
                     }
                     catch (Exception)
                     {
@@ -1172,7 +1217,7 @@ namespace AiCodo.Flow.Configs
             CheckWait(flowArgs);
             if (Condition.IsNotEmpty())
             {
-                if (exp.Eval(Condition).ToBoolean())
+                if (!exp.Eval(Condition).ToBoolean())
                 {
                     this.Log($"{Name} 不满足执行条件，执行跳过");
                     return false;
@@ -1269,7 +1314,7 @@ namespace AiCodo.Flow.Configs
 
         #region 属性 FlowAction
         private FlowActionBase _FlowAction = null;
-        [XmlIgnore]
+        [XmlIgnore, JsonIgnore]
         public FlowActionBase FlowAction
         {
             get
@@ -1346,6 +1391,26 @@ namespace AiCodo.Flow.Configs
         }
         #endregion
 
+        #region 属性 DefaultValue
+        private string _DefaultValue = string.Empty;
+        /// <summary>
+        /// 默认值
+        /// </summary>
+        [XmlAttribute("DefaultValue"), DefaultValue("")]
+        public string DefaultValue
+        {
+            get
+            {
+                return _DefaultValue;
+            }
+            set
+            {
+                _DefaultValue = value;
+                RaisePropertyChanged("DefaultValue");
+            }
+        }
+        #endregion
+
         #region 属性 FlowAction
         private FlowActionBase _FlowAction = null;
         [XmlIgnore]
@@ -1410,6 +1475,9 @@ namespace AiCodo.Flow.Configs
 
         //在执行函数内部发送的错误
         public const string MethodInnerError = "4";
+
+        //超时
+        public const string TimeoutError = "5";
 
         //流程配置错误
         public const string FlowConfigError = "10";
